@@ -44,10 +44,15 @@ julia_bin <- function() {
 #' @return When `check = FALSE`, a logical. When `check = TRUE`, invisible
 #'   `TRUE` on success (errors otherwise).
 #' @noRd
+# Library-path variables R may set, which point Julia at R's libraries.
+lib_path_vars <- c(
+  "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH"
+)
+
 julia_subprocess <- function(code, check = TRUE, bin = julia_bin()) {
   check_julia_bin(bin)
   res <- with_unset_env(
-    c("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH"),
+    lib_path_vars,
     suppressWarnings(system2(
       bin,
       args = c("--startup-file=no", "-e", shQuote(code)),

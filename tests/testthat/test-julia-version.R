@@ -32,3 +32,13 @@ test_that("a binary already chosen is left alone", {
   expect_null(match_manifest_julia(project, verbose = FALSE))
   expect_identical(Sys.getenv("JULIACONNECTOR_JULIABIN"), chosen)
 })
+
+test_that("juliaup_julia returns the binary of an installed channel", {
+  skip_if_not(nzchar(Sys.which("juliaup")), "juliaup not installed")
+  skip_on_cran()
+  bin <- juliaup_julia("1.12", verbose = FALSE)
+  skip_if(is.null(bin), "Julia 1.12 could not be installed")
+  expect_true(file.exists(bin))
+  version <- system2(bin, "--version", stdout = TRUE)
+  expect_match(version, "version 1.12.", fixed = TRUE)
+})

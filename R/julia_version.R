@@ -56,14 +56,31 @@ juliaup_julia <- function(version, verbose = TRUE) {
   )
   if (!identical(as.integer(status), 0L)) return(NULL)
 
-  dirs <- list.dirs(
-    file.path(path.expand("~"), ".julia", "juliaup"), recursive = FALSE
-  )
-  matching <- dirs[startsWith(basename(dirs), paste0("julia-", version, "."))]
+  juliaup_binary(version)
+}
+
+#' Ask the juliaup launcher where a channel's Julia binary is
+#'
+#' The launcher knows the depot, platform and exact version a channel
+#' resolves to, which a scan of the depot directory would have to guess.
+#' @noRd
+juliaup_binary <- function(version) {
   exe <- if (.Platform$OS.type == "windows") "julia.exe" else "julia"
-  bins <- file.path(sort(matching, decreasing = TRUE), "bin", exe)
-  bins <- bins[file.exists(bins)]
-  if (length(bins) == 0) NULL else bins[1]
+  launcher <- file.path(dirname(Sys.which("juliaup")), exe)
+  if (!file.exists(launcher)) launcher <- Sys.which("julia")
+  out <- with_unset_env(lib_path_vars, tryCatch(
+    suppressWarnings(system2(
+      launcher,
+      c(
+        paste0("+", version), "--startup-file=no", "-e",
+        shQuote("print(joinpath(Sys.BINDIR, Base.julia_exename()))")
+      ),
+      stdout = TRUE, stderr = FALSE
+    )),
+    error = function(e) character()
+  ))
+  bin <- out[length(out)]
+  if (length(bin) == 1 && file.exists(bin)) bin else NULL
 }
 
 #' Point JuliaConnectoR at the Julia version a project's Manifest needs
