@@ -1,6 +1,6 @@
 #' Find the Julia binary
 #'
-#' Resolves the Julia binary path, used by [julia_subprocess()] to run
+#' Resolves the Julia binary path, used by `julia_subprocess()` to run
 #' subprocess work (installing packages into the default depot) before
 #' starting the JuliaConnectoR server.
 #'
@@ -59,7 +59,7 @@ julia_subprocess <- function(code, check = TRUE, bin = julia_bin()) {
       if (is.na(old)) {
         Sys.unsetenv(v)
       } else {
-        do.call(Sys.setenv, setNames(list(old), v))
+        do.call(Sys.setenv, stats::setNames(list(old), v))
       }
     }
   }, add = TRUE)

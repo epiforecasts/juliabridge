@@ -14,10 +14,11 @@ Description: Helper utilities for R packages that call into a Julia
     segfaults that otherwise leak into R from libR/libjulia symbol
     interactions, environment poisoning, and Pkg operations.
 License: MIT + file LICENSE
-URL: https://github.com/sbfnk/juliaready
+URL: https://github.com/sbfnk/juliaready, https://sbfnk.github.io/juliaready/
 BugReports: https://github.com/sbfnk/juliaready/issues
 Imports:
-    JuliaConnectoR
+    JuliaConnectoR,
+    stats
 Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
