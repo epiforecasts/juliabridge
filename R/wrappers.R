@@ -43,6 +43,9 @@ import_julia <- function(module) {
   JuliaConnectoR::juliaImport(module)
 }
 
+# Session-level state, e.g. whether the assign helper has been defined.
+.juliaready_state <- new.env(parent = emptyenv())
+
 #' Assign an R value to a name in Julia's `Main` module
 #'
 #' Equivalent in spirit to `JuliaCall::julia_assign(name, value)`. Useful
@@ -57,8 +60,6 @@ import_julia <- function(module) {
 #' @param value R value to convert and assign.
 #' @return Invisibly `NULL`.
 #' @export
-.juliaready_state <- new.env(parent = emptyenv())
-
 assign_julia <- function(name, value) {
   if (!grepl("^[A-Za-z_][A-Za-z0-9_]*$", name)) {
     stop("Invalid Julia identifier: ", name, call. = FALSE)
