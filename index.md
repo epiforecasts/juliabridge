@@ -10,34 +10,33 @@ how to manage lazy initialisation. It is small and opinionated, and it
 replaces about 100 lines of brittle boilerplate per consuming package
 with about 5.
 
-Internally it uses
-[JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), which
-runs Julia in a separate process. The main alternative,
+## Backend
+
+juliaready runs Julia through
+[JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), in a
+separate process from R. The main alternative,
 [JuliaCall](https://github.com/JuliaInterop/JuliaCall), embeds Julia in
-the R process. Consumer packages call
-[`juliaready::eval_julia()`](https://epiforecasts.io/juliaready/reference/eval_julia.md),
-[`call_julia()`](https://epiforecasts.io/juliaready/reference/call_julia.md)
-and
-[`import_julia()`](https://epiforecasts.io/juliaready/reference/import_julia.md)
-and never touch the backend directly, which keeps the choice of backend
-in one place.
-
-## Why JuliaConnectoR and not JuliaCall
-
-Both work for the simple case. JuliaConnectoR is the better default
-because it keeps Julia out of R’s process. With JuliaCall, R and Julia
-share memory, threads, signal handlers and the dynamic linker, and a
-problem in any of them crashes both. We have seen segfaults from
+the R process. Both work for simple cases. With JuliaCall, though, R and
+Julia share memory, threads, signal handlers and the dynamic linker, and
+a problem in any of them crashes both. We have seen segfaults from
 `LD_LIBRARY_PATH` poisoning of subprocess Julia, from
 `Pkg.activate(<path>)` followed by `Pkg.instantiate()` in in-process
 JuliaCall, and from accessing fields of NamedTuple results via
 `julia_eval`. With JuliaConnectoR, a Julia segfault closes a TCP socket,
-R survives, and a crashed simulation can be recovered. The list of
-things you must not do is also much shorter with out-of-process Julia.
+R survives, and a crashed simulation can be recovered. Out-of-process
+Julia also leaves a much shorter list of things you must avoid.
 
 JuliaCall has a larger ecosystem and more frequent commits, but most of
-that activity is platform-compatibility work. The in-process linking
+that activity is platform-compatibility work. Its in-process linking
 problems cannot be fixed without changing its architecture.
+
+Consumer packages call
+[`juliaready::eval_julia()`](https://epiforecasts.io/juliaready/reference/eval_julia.md),
+[`call_julia()`](https://epiforecasts.io/juliaready/reference/call_julia.md)
+and
+[`import_julia()`](https://epiforecasts.io/juliaready/reference/import_julia.md)
+and never touch JuliaConnectoR directly, which keeps the choice of
+backend in one place.
 
 ## Installation
 
@@ -96,10 +95,11 @@ my_function <- function(x) {
   installs the required Julia packages in a subprocess, then starts the
   JuliaConnectoR server and loads them with `using`. With
   `project = "<path>"`, it activates and instantiates a pinned Julia
-  project (e.g. `inst/julia/Project.toml`) instead of installing
-  packages into the user’s default Julia environment. We recommend this
-  for reproducible installs. Once setup has completed, later calls
-  return immediately.
+  project (e.g. `inst/julia/Project.toml`) and sets `JULIA_PROJECT` for
+  the R session. The user’s default Julia environment is not modified,
+  although packages are still downloaded into the shared Julia depot. We
+  recommend this for reproducible installs. Once setup has completed,
+  later calls return immediately.
 - `julia_load_bridge(package, files, verbose)` loads `.jl` files from
   `inst/julia/` of the calling package via `juliaEval`.
 - `ensure_julia(state_env, init_fn)` is a lazy-initialisation guard.
