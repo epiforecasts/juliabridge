@@ -51,22 +51,14 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Robust Julia setup for R packages that wrap a Julia engine.</p>
-<p><code>juliaready</code> captures the patterns you have to learn the hard way when building an R package that calls Julia: which Julia binary to use when several are installed, how to install Julia packages cleanly without leaving the depot in an unstable state, how to load <code>.jl</code> bridge files reliably, and how to manage lazy initialisation. It is small, opinionated, and meant to replace ~100 lines of brittle boilerplate per consuming package with ~5.</p>
-<p>Internally it uses <a href="https://github.com/stefan-m-lenz/JuliaConnectoR" class="external-link">JuliaConnectoR</a> — keeping Julia in a separate process from R — rather than <a href="https://github.com/JuliaInterop/JuliaCall" class="external-link">JuliaCall</a> which embeds Julia in the R process. Consumer packages call <code><a href="reference/eval_julia.html">juliaready::eval_julia()</a></code> / <code><a href="reference/call_julia.html">call_julia()</a></code> / <code><a href="reference/import_julia.html">import_julia()</a></code> rather than the underlying library directly, so the choice of backend is encapsulated.</p>
+<p>Julia setup for R packages that wrap a Julia engine.</p>
+<p><code>juliaready</code> collects the patterns you otherwise learn the hard way when building an R package that calls Julia: which Julia binary to use when several are installed, how to install Julia packages without leaving the depot in an unstable state, how to load <code>.jl</code> bridge files reliably, and how to manage lazy initialisation. It is small and opinionated, and it replaces about 100 lines of brittle boilerplate per consuming package with about 5.</p>
+<p>Internally it uses <a href="https://github.com/stefan-m-lenz/JuliaConnectoR" class="external-link">JuliaConnectoR</a>, which runs Julia in a separate process. The main alternative, <a href="https://github.com/JuliaInterop/JuliaCall" class="external-link">JuliaCall</a>, embeds Julia in the R process. Consumer packages call <code><a href="reference/eval_julia.html">juliaready::eval_julia()</a></code>, <code><a href="reference/call_julia.html">call_julia()</a></code> and <code><a href="reference/import_julia.html">import_julia()</a></code> and never touch the backend directly, which keeps the choice of backend in one place.</p>
 <div class="section level2">
 <h2 id="why-juliaconnector-and-not-juliacall">Why JuliaConnectoR and not JuliaCall<a class="anchor" aria-label="anchor" href="#why-juliaconnector-and-not-juliacall"></a>
 </h2>
-<p>Both work for the simple case. JuliaConnectoR is the better default because:</p>
-<ul>
-<li>
-<strong>No shared-process segfaults.</strong> With JuliaCall, R and Julia share memory, threads, signal handlers, and the dynamic linker. Any one of them being unhappy crashes both. We have observed segfaults from <code>LD_LIBRARY_PATH</code> poisoning of subprocess Julia, from <code>Pkg.activate(&lt;path&gt;)</code> followed by <code>Pkg.instantiate()</code> from in-process JuliaCall, from accessing fields of NamedTuple results via <code>julia_eval</code>, and so on. JuliaConnectoR puts Julia in a separate process; a Julia segfault closes a TCP socket and R survives.</li>
-<li>
-<strong>Smaller list of rules.</strong> The list of “things you must not do” is much shorter with out-of-process Julia. Less to remember, less to break.</li>
-<li>
-<strong>Crash containment.</strong> A bad simulation crash is recoverable rather than fatal.</li>
-</ul>
-<p>JuliaCall has a larger ecosystem and more frequent commits, but most of the activity is platform-compatibility work; the hard interaction (in-process linking) cannot be fixed without changing the architecture.</p>
+<p>Both work for the simple case. JuliaConnectoR is the better default because it keeps Julia out of R’s process. With JuliaCall, R and Julia share memory, threads, signal handlers and the dynamic linker, and a problem in any of them crashes both. We have seen segfaults from <code>LD_LIBRARY_PATH</code> poisoning of subprocess Julia, from <code>Pkg.activate(&lt;path&gt;)</code> followed by <code>Pkg.instantiate()</code> in in-process JuliaCall, and from accessing fields of NamedTuple results via <code>julia_eval</code>. With JuliaConnectoR, a Julia segfault closes a TCP socket, R survives, and a crashed simulation can be recovered. The list of things you must not do is also much shorter with out-of-process Julia.</p>
+<p>JuliaCall has a larger ecosystem and more frequent commits, but most of that activity is platform-compatibility work. The in-process linking problems cannot be fixed without changing its architecture.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -113,24 +105,24 @@
 </h2>
 <ul>
 <li>
-<strong><code><a href="reference/julia_bin.html">julia_bin()</a></code></strong> — resolve the Julia binary, honouring <code>JULIACONNECTOR_JULIABIN</code>, <code>JULIA_BINDIR</code>, then <code>PATH</code>.</li>
+<code><a href="reference/julia_bin.html">julia_bin()</a></code> resolves the Julia binary, checking <code>JULIACONNECTOR_JULIABIN</code>, then <code>JULIA_BINDIR</code>, then <code>PATH</code>.</li>
 <li>
-<strong><code>julia_ready(packages, github, state_env, install, project, verbose)</code></strong> — install required Julia packages in a subprocess, then start the JuliaConnectoR server and <code>using</code> them. With <code>project = "&lt;path&gt;"</code>, activates and instantiates a pinned Julia project (e.g. <code>inst/julia/Project.toml</code>) instead of installing into the user’s default depot — recommended for shipping reproducible installs. Idempotent.</li>
+<code>julia_ready(packages, github, state_env, install, project, verbose)</code> installs the required Julia packages in a subprocess, then starts the JuliaConnectoR server and loads them with <code>using</code>. With <code>project = "&lt;path&gt;"</code>, it activates and instantiates a pinned Julia project (e.g. <code>inst/julia/Project.toml</code>) instead of installing packages into the user’s default Julia environment. We recommend this for reproducible installs. Once setup has completed, later calls return immediately.</li>
 <li>
-<strong><code>julia_load_bridge(package, files, verbose)</code></strong> — load <code>.jl</code> files from <code>inst/julia/&lt;package&gt;</code> of a calling package via <code>juliaEval</code>.</li>
+<code>julia_load_bridge(package, files, verbose)</code> loads <code>.jl</code> files from <code>inst/julia/</code> of the calling package via <code>juliaEval</code>.</li>
 <li>
-<strong><code>ensure_julia(state_env, init_fn)</code></strong> — lazy-init guard. Call from the top of any function that will use Julia.</li>
+<code>ensure_julia(state_env, init_fn)</code> is a lazy-initialisation guard. Call it at the top of any function that uses Julia.</li>
 <li>
-<strong><code>eval_julia(code)</code></strong> / <strong><code>call_julia(name, ...)</code></strong> / <strong><code>import_julia(module)</code></strong> — backend-agnostic wrappers around <code>juliaEval</code> / <code>juliaCall</code> / <code>juliaImport</code>.</li>
+<code>eval_julia(code)</code>, <code>call_julia(name, ...)</code> and <code>import_julia(module)</code> wrap <code>juliaEval</code>, <code>juliaCall</code> and <code>juliaImport</code>, and <code><a href="reference/get_julia.html">get_julia()</a></code>, <code><a href="reference/assign_julia.html">assign_julia()</a></code> and <code><a href="reference/command_julia.html">command_julia()</a></code> cover the remaining common operations.</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="what-this-package-deliberately-does-not-do">What this package deliberately does <em>not</em> do<a class="anchor" aria-label="anchor" href="#what-this-package-deliberately-does-not-do"></a>
+<h2 id="out-of-scope">Out of scope<a class="anchor" aria-label="anchor" href="#out-of-scope"></a>
 </h2>
 <ul>
-<li>It does not pin a specific Julia version. If your package needs that, install via <a href="https://github.com/JuliaLang/juliaup" class="external-link">juliaup</a> and set <code>JULIACONNECTOR_JULIABIN</code>, or wrap <code><a href="reference/julia_ready.html">julia_ready()</a></code> with a version check.</li>
-<li>It does not auto-initialise on <code>.onLoad</code>. Eager init in <code>.onLoad</code> interacts badly with other compiled backends (notably Stan) and can crash R during package attach. Use <code><a href="reference/ensure_julia.html">ensure_julia()</a></code> instead.</li>
-<li>It does not provide a Julia REPL. That is <code>JuliaConnectoR</code>’s job.</li>
+<li>Pinning a Julia version. If your package needs one, install it via <a href="https://github.com/JuliaLang/juliaup" class="external-link">juliaup</a> and set <code>JULIACONNECTOR_JULIABIN</code>, or wrap <code><a href="reference/julia_ready.html">julia_ready()</a></code> with a version check.</li>
+<li>Initialising in <code>.onLoad</code>. Eager initialisation there interacts badly with other compiled backends (notably Stan) and can crash R while the package attaches. Use <code><a href="reference/ensure_julia.html">ensure_julia()</a></code>.</li>
+<li>A Julia REPL, which is left to JuliaConnectoR.</li>
 </ul>
 </div>
 <div class="section level2">

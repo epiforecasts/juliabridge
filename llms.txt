@@ -1,50 +1,43 @@
 # juliaready
 
-Robust Julia setup for R packages that wrap a Julia engine.
+Julia setup for R packages that wrap a Julia engine.
 
-`juliaready` captures the patterns you have to learn the hard way when
+`juliaready` collects the patterns you otherwise learn the hard way when
 building an R package that calls Julia: which Julia binary to use when
-several are installed, how to install Julia packages cleanly without
-leaving the depot in an unstable state, how to load `.jl` bridge files
-reliably, and how to manage lazy initialisation. It is small,
-opinionated, and meant to replace ~100 lines of brittle boilerplate per
-consuming package with ~5.
+several are installed, how to install Julia packages without leaving the
+depot in an unstable state, how to load `.jl` bridge files reliably, and
+how to manage lazy initialisation. It is small and opinionated, and it
+replaces about 100 lines of brittle boilerplate per consuming package
+with about 5.
 
 Internally it uses
-[JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR) —
-keeping Julia in a separate process from R — rather than
-[JuliaCall](https://github.com/JuliaInterop/JuliaCall) which embeds
-Julia in the R process. Consumer packages call
-[`juliaready::eval_julia()`](https://epiforecasts.io/juliaready/reference/eval_julia.md)
-/
+[JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), which
+runs Julia in a separate process. The main alternative,
+[JuliaCall](https://github.com/JuliaInterop/JuliaCall), embeds Julia in
+the R process. Consumer packages call
+[`juliaready::eval_julia()`](https://epiforecasts.io/juliaready/reference/eval_julia.md),
 [`call_julia()`](https://epiforecasts.io/juliaready/reference/call_julia.md)
-/
+and
 [`import_julia()`](https://epiforecasts.io/juliaready/reference/import_julia.md)
-rather than the underlying library directly, so the choice of backend is
-encapsulated.
+and never touch the backend directly, which keeps the choice of backend
+in one place.
 
 ## Why JuliaConnectoR and not JuliaCall
 
 Both work for the simple case. JuliaConnectoR is the better default
-because:
-
-- **No shared-process segfaults.** With JuliaCall, R and Julia share
-  memory, threads, signal handlers, and the dynamic linker. Any one of
-  them being unhappy crashes both. We have observed segfaults from
-  `LD_LIBRARY_PATH` poisoning of subprocess Julia, from
-  `Pkg.activate(<path>)` followed by `Pkg.instantiate()` from in-process
-  JuliaCall, from accessing fields of NamedTuple results via
-  `julia_eval`, and so on. JuliaConnectoR puts Julia in a separate
-  process; a Julia segfault closes a TCP socket and R survives.
-- **Smaller list of rules.** The list of “things you must not do” is
-  much shorter with out-of-process Julia. Less to remember, less to
-  break.
-- **Crash containment.** A bad simulation crash is recoverable rather
-  than fatal.
+because it keeps Julia out of R’s process. With JuliaCall, R and Julia
+share memory, threads, signal handlers and the dynamic linker, and a
+problem in any of them crashes both. We have seen segfaults from
+`LD_LIBRARY_PATH` poisoning of subprocess Julia, from
+`Pkg.activate(<path>)` followed by `Pkg.instantiate()` in in-process
+JuliaCall, and from accessing fields of NamedTuple results via
+`julia_eval`. With JuliaConnectoR, a Julia segfault closes a TCP socket,
+R survives, and a crashed simulation can be recovered. The list of
+things you must not do is also much shorter with out-of-process Julia.
 
 JuliaCall has a larger ecosystem and more frequent commits, but most of
-the activity is platform-compatibility work; the hard interaction
-(in-process linking) cannot be fixed without changing the architecture.
+that activity is platform-compatibility work. The in-process linking
+problems cannot be fixed without changing its architecture.
 
 ## Installation
 
@@ -96,37 +89,41 @@ my_function <- function(x) {
 
 ## API
 
-- **[`julia_bin()`](https://epiforecasts.io/juliaready/reference/julia_bin.md)**
-  — resolve the Julia binary, honouring `JULIACONNECTOR_JULIABIN`,
+- [`julia_bin()`](https://epiforecasts.io/juliaready/reference/julia_bin.md)
+  resolves the Julia binary, checking `JULIACONNECTOR_JULIABIN`, then
   `JULIA_BINDIR`, then `PATH`.
-- **`julia_ready(packages, github, state_env, install, project, verbose)`**
-  — install required Julia packages in a subprocess, then start the
-  JuliaConnectoR server and `using` them. With `project = "<path>"`,
-  activates and instantiates a pinned Julia project
-  (e.g. `inst/julia/Project.toml`) instead of installing into the user’s
-  default depot — recommended for shipping reproducible installs.
-  Idempotent.
-- **`julia_load_bridge(package, files, verbose)`** — load `.jl` files
-  from `inst/julia/<package>` of a calling package via `juliaEval`.
-- **`ensure_julia(state_env, init_fn)`** — lazy-init guard. Call from
-  the top of any function that will use Julia.
-- **`eval_julia(code)`** / **`call_julia(name, ...)`** /
-  **`import_julia(module)`** — backend-agnostic wrappers around
-  `juliaEval` / `juliaCall` / `juliaImport`.
+- `julia_ready(packages, github, state_env, install, project, verbose)`
+  installs the required Julia packages in a subprocess, then starts the
+  JuliaConnectoR server and loads them with `using`. With
+  `project = "<path>"`, it activates and instantiates a pinned Julia
+  project (e.g. `inst/julia/Project.toml`) instead of installing
+  packages into the user’s default Julia environment. We recommend this
+  for reproducible installs. Once setup has completed, later calls
+  return immediately.
+- `julia_load_bridge(package, files, verbose)` loads `.jl` files from
+  `inst/julia/` of the calling package via `juliaEval`.
+- `ensure_julia(state_env, init_fn)` is a lazy-initialisation guard.
+  Call it at the top of any function that uses Julia.
+- `eval_julia(code)`, `call_julia(name, ...)` and `import_julia(module)`
+  wrap `juliaEval`, `juliaCall` and `juliaImport`, and
+  [`get_julia()`](https://epiforecasts.io/juliaready/reference/get_julia.md),
+  [`assign_julia()`](https://epiforecasts.io/juliaready/reference/assign_julia.md)
+  and
+  [`command_julia()`](https://epiforecasts.io/juliaready/reference/command_julia.md)
+  cover the remaining common operations.
 
-## What this package deliberately does *not* do
+## Out of scope
 
-- It does not pin a specific Julia version. If your package needs that,
-  install via [juliaup](https://github.com/JuliaLang/juliaup) and set
+- Pinning a Julia version. If your package needs one, install it via
+  [juliaup](https://github.com/JuliaLang/juliaup) and set
   `JULIACONNECTOR_JULIABIN`, or wrap
   [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
   with a version check.
-- It does not auto-initialise on `.onLoad`. Eager init in `.onLoad`
-  interacts badly with other compiled backends (notably Stan) and can
-  crash R during package attach. Use
-  [`ensure_julia()`](https://epiforecasts.io/juliaready/reference/ensure_julia.md)
-  instead.
-- It does not provide a Julia REPL. That is `JuliaConnectoR`’s job.
+- Initialising in `.onLoad`. Eager initialisation there interacts badly
+  with other compiled backends (notably Stan) and can crash R while the
+  package attaches. Use
+  [`ensure_julia()`](https://epiforecasts.io/juliaready/reference/ensure_julia.md).
+- A Julia REPL, which is left to JuliaConnectoR.
 
 ## Status
 
