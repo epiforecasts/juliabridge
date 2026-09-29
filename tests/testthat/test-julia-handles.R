@@ -59,7 +59,23 @@ test_that("a failed release does not propagate and stays queued", {
     call_julia = function(...) stop("bridge not loaded", call. = FALSE)
   )
   expect_identical(julia_release_pending(state, "Bridge.release!"), 0L)
-  expect_identical(state$released, list(entry))
+  expect_identical(state$released, list(c(entry, attempts = 1L)))
+})
+
+test_that("a release that keeps failing is dropped after three attempts", {
+  state <- new.env(parent = emptyenv())
+  state$ready <- TRUE
+  state$setup <- "setup_a"
+  state$released <- list(
+    list(handle = 1L, session = "token", setup = "setup_a")
+  )
+  local_mocked_bindings(
+    call_julia = function(...) stop("bridge not loaded", call. = FALSE)
+  )
+  for (i in 1:2) julia_release_pending(state, "Bridge.release!")
+  expect_length(state$released, 1)
+  julia_release_pending(state, "Bridge.release!")
+  expect_null(state$released)
 })
 
 test_that("the queue is dropped without a set-up session", {

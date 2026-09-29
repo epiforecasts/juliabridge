@@ -108,7 +108,9 @@ julia_handle_owned <- function(x, state_env) {
 #' Only handles from the current setup of `state_env` are released. The
 #' queue is dropped when `state_env` is not set up, and so are handles
 #' from an earlier setup, because their objects went with the old Julia
-#' server. A release that fails stays queued for the next call.
+#' server. A release that fails stays queued for the next call, up to
+#' three attempts, after which it is dropped: a release that keeps failing
+#' usually means the server was replaced without [julia_alive()] noticing.
 #'
 #' @inheritParams julia_handle
 #' @param release Name of the Julia function releasing a handle, taking
@@ -131,6 +133,11 @@ julia_release_pending <- function(state_env, release) {
       "try-error"
     )
   }, current)
+  failed <- lapply(failed, function(entry) {
+    entry$attempts <- max(entry$attempts, 0L) + 1L
+    entry
+  })
+  failed <- Filter(function(entry) entry$attempts < 3L, failed)
   if (length(failed) > 0) {
     state_env$released <- c(state_env$released, failed)
   }

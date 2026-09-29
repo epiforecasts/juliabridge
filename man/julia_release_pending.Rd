@@ -25,7 +25,9 @@ before a Julia call of your own.
 Only handles from the current setup of \code{state_env} are released. The
 queue is dropped when \code{state_env} is not set up, and so are handles
 from an earlier setup, because their objects went with the old Julia
-server. A release that fails stays queued for the next call.
+server. A release that fails stays queued for the next call, up to
+three attempts, after which it is dropped: a release that keeps failing
+usually means the server was replaced without \code{\link[=julia_alive]{julia_alive()}} noticing.
 }
 \examples{
 \dontrun{
