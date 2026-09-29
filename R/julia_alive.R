@@ -10,11 +10,15 @@
 #' environment itself is kept, because callers may use its identity.
 #'
 #' @param state_env The environment given to [julia_ready()].
+#' JuliaConnectoR starts a new server whenever its connection has gone,
+#' so the check itself may start Julia. The default probe is `FALSE` in
+#' such a server, because only the server [julia_ready()] ran in holds the
+#' token it recorded.
+#'
 #' @param probe Julia code returning a `Bool`, evaluated to decide whether
-#'   the session still holds what the caller needs. The default asks
-#'   whether Julia answers at all; a caller that loads its own module
-#'   should ask for that instead, e.g.
-#'   `"isdefined(Main, :MyBridge)"`.
+#'   the session still holds what the caller needs. The default checks
+#'   that this is the server `state_env` was set up in. A caller can ask
+#'   for something more specific, e.g. `"isdefined(Main, :MyBridge)"`.
 #' @return `TRUE` when the session is usable, otherwise `FALSE`.
 #' @export
 #' @examples
@@ -23,8 +27,9 @@
 #'   setup_my_pkg()
 #' }
 #' }
-julia_alive <- function(state_env, probe = "true") {
+julia_alive <- function(state_env, probe = NULL) {
   if (!isTRUE(state_env$ready)) return(FALSE)
+  if (is.null(probe)) probe <- setup_probe(state_env)
   running <- tryCatch(
     isTRUE(JuliaConnectoR::juliaEval(probe)),
     error = function(e) FALSE

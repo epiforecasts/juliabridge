@@ -76,6 +76,7 @@ julia_ready <- function(
   for (pkg in packages) {
     JuliaConnectoR::juliaEval(sprintf("using %s", pkg))
   }
+  mark_setup(state_env)
 
   state_env$ready <- TRUE
   invisible(TRUE)
@@ -151,4 +152,36 @@ install_julia_packages <- function(packages, github, bin, install, verbose) {
   } else {
     sprintf('import Pkg; Pkg.add("%s"); using %s', pkg, pkg)
   }
+}
+
+#' Record this setup in the Julia server
+#'
+#' JuliaConnectoR starts a fresh server whenever its connection has gone,
+#' so a server answering says nothing about whether this setup's packages
+#' are loaded. A token stored both in `state_env` and in `Main` identifies
+#' the server this setup ran in. `tempfile()` supplies it because it does
+#' not touch the user's random number stream.
+#' @noRd
+mark_setup <- function(state_env) {
+  state_env$setup <- basename(tempfile("setup"))
+  JuliaConnectoR::juliaEval(sprintf(
+    paste(
+      "isdefined(Main, :__juliaready_setups__) ||",
+      "(global __juliaready_setups__ = Set{String}());",
+      'push!(__juliaready_setups__, "%s"); nothing'
+    ),
+    state_env$setup
+  ))
+}
+
+#' Julia code that is `true` only in the server `state_env` was set up in
+#' @noRd
+setup_probe <- function(state_env) {
+  sprintf(
+    paste(
+      "isdefined(Main, :__juliaready_setups__) &&",
+      'in("%s", __juliaready_setups__)'
+    ),
+    state_env$setup
+  )
 }

@@ -4,16 +4,19 @@
 \alias{julia_alive}
 \title{Is the Julia session still usable?}
 \usage{
-julia_alive(state_env, probe = "true")
+julia_alive(state_env, probe = NULL)
 }
 \arguments{
-\item{state_env}{The environment given to \code{\link[=julia_ready]{julia_ready()}}.}
+\item{state_env}{The environment given to \code{\link[=julia_ready]{julia_ready()}}.
+JuliaConnectoR starts a new server whenever its connection has gone,
+so the check itself may start Julia. The default probe is \code{FALSE} in
+such a server, because only the server \code{\link[=julia_ready]{julia_ready()}} ran in holds the
+token it recorded.}
 
 \item{probe}{Julia code returning a \code{Bool}, evaluated to decide whether
-the session still holds what the caller needs. The default asks
-whether Julia answers at all; a caller that loads its own module
-should ask for that instead, e.g.
-\code{"isdefined(Main, :MyBridge)"}.}
+the session still holds what the caller needs. The default checks
+that this is the server \code{state_env} was set up in. A caller can ask
+for something more specific, e.g. \code{"isdefined(Main, :MyBridge)"}.}
 }
 \value{
 \code{TRUE} when the session is usable, otherwise \code{FALSE}.
