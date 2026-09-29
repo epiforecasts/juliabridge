@@ -29,9 +29,11 @@ test_that("only an owned handle is queued for release", {
 
 test_that("flushing releases each queued handle once", {
   state <- new.env(parent = emptyenv())
+  state$ready <- TRUE
+  state$setup <- "setup_a"
   state$released <- list(
-    list(handle = 1L, session = "token"),
-    list(handle = 2L, session = "token")
+    list(handle = 1L, session = "token", setup = "setup_a"),
+    list(handle = 2L, session = "token", setup = "setup_a")
   )
   calls <- new.env(parent = emptyenv())
   calls$seen <- list()
@@ -47,13 +49,44 @@ test_that("flushing releases each queued handle once", {
   expect_identical(julia_release_pending(state, "Bridge.release!"), 0L)
 })
 
-test_that("a failed release does not propagate", {
+test_that("a failed release does not propagate and stays queued", {
   state <- new.env(parent = emptyenv())
-  state$released <- list(list(handle = 1L, session = "token"))
+  state$ready <- TRUE
+  state$setup <- "setup_a"
+  entry <- list(handle = 1L, session = "token", setup = "setup_a")
+  state$released <- list(entry)
   local_mocked_bindings(
-    call_julia = function(...) stop("session gone", call. = FALSE)
+    call_julia = function(...) stop("bridge not loaded", call. = FALSE)
   )
+  expect_identical(julia_release_pending(state, "Bridge.release!"), 0L)
+  expect_identical(state$released, list(entry))
+})
+
+test_that("the queue is dropped without a set-up session", {
+  state <- new.env(parent = emptyenv())
+  state$released <- list(list(handle = 1L, session = "token", setup = "a"))
+  local_mocked_bindings(
+    call_julia = function(...) stop("not called", call. = FALSE)
+  )
+  expect_identical(julia_release_pending(state, "Bridge.release!"), 0L)
+  expect_null(state$released)
+})
+
+test_that("handles from an earlier setup are dropped, not released", {
+  state <- new.env(parent = emptyenv())
+  state$ready <- TRUE
+  state$setup <- "setup_b"
+  state$released <- list(
+    list(handle = 1L, session = "old", setup = "setup_a"),
+    list(handle = 2L, session = "new", setup = "setup_b")
+  )
+  released <- new.env(parent = emptyenv())
+  local_mocked_bindings(call_julia = function(name, handle, session) {
+    released$handles <- c(released$handles, handle)
+  })
   expect_identical(julia_release_pending(state, "Bridge.release!"), 1L)
+  expect_identical(released$handles, 2L)
+  expect_null(state$released)
 })
 
 test_that("a handle from an earlier setup is not owned", {

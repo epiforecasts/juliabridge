@@ -70,7 +70,7 @@ julia_handle <- function(handle, session, state_env) {
     if (!identical(e$owner, state_env)) return(invisible(NULL))
     state_env$released <- c(
       state_env$released,
-      list(list(handle = e$handle, session = e$session))
+      list(list(handle = e$handle, session = e$session, setup = e$setup))
     )
   })
   env
@@ -105,8 +105,10 @@ julia_handle_owned <- function(x, state_env) {
 #' from a known-safe point is this function's job: call it immediately
 #' before a Julia call of your own.
 #'
-#' Failures are ignored, because a handle whose session has gone is
-#' already released in every sense that matters.
+#' Only handles from the current setup of `state_env` are released. The
+#' queue is dropped when `state_env` is not set up, and so are handles
+#' from an earlier setup, because their objects went with the old Julia
+#' server. A release that fails stays queued for the next call.
 #'
 #' @inheritParams julia_handle
 #' @param release Name of the Julia function releasing a handle, taking
@@ -121,8 +123,16 @@ julia_handle_owned <- function(x, state_env) {
 julia_release_pending <- function(state_env, release) {
   pending <- state_env$released
   state_env$released <- NULL
-  for (entry in pending) {
-    try(call_julia(release, entry$handle, entry$session), silent = TRUE)
+  if (!isTRUE(state_env$ready)) return(invisible(0L))
+  current <- Filter(function(e) identical(e$setup, state_env$setup), pending)
+  failed <- Filter(function(entry) {
+    inherits(
+      try(call_julia(release, entry$handle, entry$session), silent = TRUE),
+      "try-error"
+    )
+  }, current)
+  if (length(failed) > 0) {
+    state_env$released <- c(state_env$released, failed)
   }
-  invisible(length(pending))
+  invisible(length(current) - length(failed))
 }

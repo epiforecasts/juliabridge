@@ -22,8 +22,10 @@ from a known-safe point is this function's job: call it immediately
 before a Julia call of your own.
 }
 \details{
-Failures are ignored, because a handle whose session has gone is
-already released in every sense that matters.
+Only handles from the current setup of \code{state_env} are released. The
+queue is dropped when \code{state_env} is not set up, and so are handles
+from an earlier setup, because their objects went with the old Julia
+server. A release that fails stays queued for the next call.
 }
 \examples{
 \dontrun{
