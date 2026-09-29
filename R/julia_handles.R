@@ -65,6 +65,7 @@ julia_handle <- function(handle, session, state_env) {
   env$handle <- handle
   env$session <- session
   env$owner <- state_env
+  env$setup <- state_env$setup
   reg.finalizer(env, function(e) {
     if (!identical(e$owner, state_env)) return(invisible(NULL))
     state_env$released <- c(
@@ -78,12 +79,14 @@ julia_handle <- function(handle, session, state_env) {
 #' Does this R session own the Julia object behind a handle?
 #'
 #' `FALSE` for a handle that arrived by saving and reloading, which names
-#' a Julia object belonging to the session that created it. Callers use
-#' this to say so, rather than reporting the object as missing.
+#' a Julia object belonging to the session that created it, and for one
+#' created before [julia_ready()] last set Julia up, whose object went
+#' with the old Julia server. Callers use this to say so, rather than
+#' reporting the object as missing.
 #'
 #' @param x A handle from [julia_handle()].
 #' @inheritParams julia_handle
-#' @return `TRUE` when this session created the handle.
+#' @return `TRUE` when the current setup of `state_env` created the handle.
 #' @export
 #' @examples
 #' \dontrun{
@@ -92,7 +95,7 @@ julia_handle <- function(handle, session, state_env) {
 #' }
 #' }
 julia_handle_owned <- function(x, state_env) {
-  isTRUE(identical(x$owner, state_env))
+  identical(x$owner, state_env) && identical(x$setup, state_env$setup)
 }
 
 #' Release the Julia objects of collected handles

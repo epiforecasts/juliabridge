@@ -12,12 +12,14 @@ julia_handle_owned(x, state_env)
 \item{state_env}{The environment given to \code{\link[=julia_ready]{julia_ready()}}.}
 }
 \value{
-\code{TRUE} when this session created the handle.
+\code{TRUE} when the current setup of \code{state_env} created the handle.
 }
 \description{
 \code{FALSE} for a handle that arrived by saving and reloading, which names
-a Julia object belonging to the session that created it. Callers use
-this to say so, rather than reporting the object as missing.
+a Julia object belonging to the session that created it, and for one
+created before \code{\link[=julia_ready]{julia_ready()}} last set Julia up, whose object went
+with the old Julia server. Callers use this to say so, rather than
+reporting the object as missing.
 }
 \examples{
 \dontrun{

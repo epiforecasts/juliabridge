@@ -55,3 +55,12 @@ test_that("a failed release does not propagate", {
   )
   expect_identical(julia_release_pending(state, "Bridge.release!"), 1L)
 })
+
+test_that("a handle from an earlier setup is not owned", {
+  state <- new.env(parent = emptyenv())
+  state$setup <- "setup_a"
+  handle <- julia_handle(3L, "token", state)
+  expect_true(julia_handle_owned(handle, state))
+  state$setup <- "setup_b"
+  expect_false(julia_handle_owned(handle, state))
+})

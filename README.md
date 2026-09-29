@@ -82,7 +82,7 @@ my_function <- function(x) {
 - `manifest_julia_version(project)` reads the Julia version a `Manifest.toml` was resolved with. `juliaup_julia(version)` installs a Julia version with juliaup and returns its binary, leaving the user's default channel alone.
 - `julia_handle(handle, session, state_env)` holds a Julia object from R by an integer handle, paired with a token for the Julia session that created it. Both sides compare the token before acting on a handle, which stops a handle from an old session naming an unrelated object in a new one. The help page lists the three definitions the Julia side needs.
 - `julia_release_pending(state_env, release)` releases the Julia objects of handles R has garbage-collected. Finalisers can run partway through another Julia call, so they only queue a release; call this immediately before a Julia call of your own.
-- `julia_handle_owned(x, state_env)` reports whether this R session owns a handle's Julia object. It returns `FALSE` for a handle loaded from a saved R object.
+- `julia_handle_owned(x, state_env)` reports whether a handle's Julia object still belongs to this session. It returns `FALSE` for a handle loaded from a saved R object, and for one created before `julia_ready()` last set Julia up.
 
 ## Out of scope
 
