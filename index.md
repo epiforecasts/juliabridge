@@ -15,11 +15,11 @@ Internally it uses
 keeping Julia in a separate process from R — rather than
 [JuliaCall](https://github.com/JuliaInterop/JuliaCall) which embeds
 Julia in the R process. Consumer packages call
-[`juliaready::eval_julia()`](https://sbfnk.github.io/juliaready/reference/eval_julia.md)
+[`juliaready::eval_julia()`](https://epiforecasts.io/juliaready/reference/eval_julia.md)
 /
-[`call_julia()`](https://sbfnk.github.io/juliaready/reference/call_julia.md)
+[`call_julia()`](https://epiforecasts.io/juliaready/reference/call_julia.md)
 /
-[`import_julia()`](https://sbfnk.github.io/juliaready/reference/import_julia.md)
+[`import_julia()`](https://epiforecasts.io/juliaready/reference/import_julia.md)
 rather than the underlying library directly, so the choice of backend is
 encapsulated.
 
@@ -51,7 +51,7 @@ the activity is platform-compatibility work; the hard interaction
 ``` r
 
 # install.packages("remotes")
-remotes::install_github("sbfnk/juliaready")
+remotes::install_github("epiforecasts/juliaready")
 ```
 
 You also need [Julia](https://julialang.org/) installed;
@@ -96,7 +96,7 @@ my_function <- function(x) {
 
 ## API
 
-- **[`julia_bin()`](https://sbfnk.github.io/juliaready/reference/julia_bin.md)**
+- **[`julia_bin()`](https://epiforecasts.io/juliaready/reference/julia_bin.md)**
   — resolve the Julia binary, honouring `JULIACONNECTOR_JULIABIN`,
   `JULIA_BINDIR`, then `PATH`.
 - **`julia_ready(packages, github, state_env, install, project, verbose)`**
@@ -119,12 +119,12 @@ my_function <- function(x) {
 - It does not pin a specific Julia version. If your package needs that,
   install via [juliaup](https://github.com/JuliaLang/juliaup) and set
   `JULIACONNECTOR_JULIABIN`, or wrap
-  [`julia_ready()`](https://sbfnk.github.io/juliaready/reference/julia_ready.md)
+  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
   with a version check.
 - It does not auto-initialise on `.onLoad`. Eager init in `.onLoad`
   interacts badly with other compiled backends (notably Stan) and can
   crash R during package attach. Use
-  [`ensure_julia()`](https://sbfnk.github.io/juliaready/reference/ensure_julia.md)
+  [`ensure_julia()`](https://epiforecasts.io/juliaready/reference/ensure_julia.md)
   instead.
 - It does not provide a Julia REPL. That is `JuliaConnectoR`’s job.
 

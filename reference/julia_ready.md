@@ -61,7 +61,7 @@ Invisibly `TRUE`.
 ## Details
 
 1.  Locates the Julia binary (see
-    [`julia_bin()`](https://sbfnk.github.io/juliaready/reference/julia_bin.md)).
+    [`julia_bin()`](https://epiforecasts.io/juliaready/reference/julia_bin.md)).
 
 2.  For each required package, checks it loads in a Julia subprocess. If
     a package is missing and `install = TRUE`, installs it (from a

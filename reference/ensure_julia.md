@@ -15,7 +15,7 @@ ensure_julia(state_env, init_fn)
 - state_env:
 
   An environment shared with
-  [`julia_ready()`](https://sbfnk.github.io/juliaready/reference/julia_ready.md)
+  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
   used to track init state. The caller's R package typically owns this
   environment.
 
@@ -23,9 +23,9 @@ ensure_julia(state_env, init_fn)
 
   A zero-argument function that performs the package's one-time setup
   (typically calling
-  [`julia_ready()`](https://sbfnk.github.io/juliaready/reference/julia_ready.md)
+  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
   and
-  [`julia_load_bridge()`](https://sbfnk.github.io/juliaready/reference/julia_load_bridge.md)).
+  [`julia_load_bridge()`](https://epiforecasts.io/juliaready/reference/julia_load_bridge.md)).
 
 ## Value
 

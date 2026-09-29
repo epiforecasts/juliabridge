@@ -3,7 +3,7 @@
 Equivalent in spirit to `JuliaCall::julia_assign(name, value)`. Useful
 when porting code that previously used the assign-then-eval pattern.
 Idiomatic JuliaConnectoR code prefers passing values directly via
-[`call_julia()`](https://sbfnk.github.io/juliaready/reference/call_julia.md);
+[`call_julia()`](https://epiforecasts.io/juliaready/reference/call_julia.md);
 this is provided for migration convenience.
 
 ## Usage

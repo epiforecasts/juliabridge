@@ -8,15 +8,15 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/sbfnk/juliaready/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/epiforecasts/juliaready/blob/main/DESCRIPTION)
 
 Funk S (2026). *juliaready: Robust Julia Setup for R Packages*. R
-package version 0.1.0, <https://github.com/sbfnk/juliaready>.
+package version 0.1.0, <https://github.com/epiforecasts/juliaready>.
 
     @Manual{,
       title = {juliaready: Robust Julia Setup for R Packages},
       author = {Sebastian Funk},
       year = {2026},
       note = {R package version 0.1.0},
-      url = {https://github.com/sbfnk/juliaready},
+      url = {https://github.com/epiforecasts/juliaready},
     }
