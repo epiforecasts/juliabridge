@@ -37,7 +37,8 @@
 #'   version, installing it with juliaup where available. A manifest pins
 #'   standard-library versions that exist only on the version that
 #'   resolved it, so instantiating it under another Julia can fail.
-#'   Ignored when the user has set `JULIACONNECTOR_JULIABIN`. A
+#'   Ignored when the user has chosen a binary through
+#'   `JULIACONNECTOR_JULIABIN` or `JULIA_BINDIR`. A
 #'   JuliaConnectoR server that is already running, for instance one
 #'   another package started, keeps its Julia: the project is then
 #'   instantiated under the matched version but loaded in the running one.

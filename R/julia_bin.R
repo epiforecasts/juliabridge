@@ -16,13 +16,19 @@ julia_bin <- function() {
   override <- Sys.getenv("JULIACONNECTOR_JULIABIN", unset = "")
   if (nzchar(override) && file.exists(override)) return(override)
 
-  bindir <- Sys.getenv("JULIA_BINDIR", unset = "")
-  if (nzchar(bindir)) {
-    exe <- if (.Platform$OS.type == "windows") "julia.exe" else "julia"
-    bin <- file.path(bindir, exe)
-    if (file.exists(bin)) return(bin)
-  }
+  bin <- bindir_julia()
+  if (nzchar(bin)) return(bin)
   Sys.which("julia")
+}
+
+#' The Julia executable in `JULIA_BINDIR`, or `""` if there is none
+#' @noRd
+bindir_julia <- function() {
+  bindir <- Sys.getenv("JULIA_BINDIR", unset = "")
+  if (!nzchar(bindir)) return("")
+  exe <- if (.Platform$OS.type == "windows") "julia.exe" else "julia"
+  bin <- file.path(bindir, exe)
+  if (file.exists(bin)) bin else ""
 }
 
 #' Run a Julia command in a subprocess

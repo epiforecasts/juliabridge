@@ -138,3 +138,17 @@ test_that("a binary juliaup cannot locate is reported", {
     "could not be located"
   )
 })
+
+test_that("a Julia chosen through JULIA_BINDIR blocks matching", {
+  project <- withr::local_tempdir()
+  writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
+  bindir <- withr::local_tempdir()
+  exe <- if (.Platform$OS.type == "windows") "julia.exe" else "julia"
+  file.create(file.path(bindir, exe))
+  withr::local_envvar(JULIACONNECTOR_JULIABIN = NA, JULIA_BINDIR = bindir)
+  local_mocked_bindings(
+    juliaup_julia = function(...) stop("should not be called", call. = FALSE)
+  )
+  expect_null(match_manifest_julia(project, verbose = FALSE))
+  expect_identical(Sys.getenv("JULIACONNECTOR_JULIABIN"), "")
+})

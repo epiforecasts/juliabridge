@@ -119,9 +119,10 @@ juliaup_binary <- function(version) {
 #' Point JuliaConnectoR at the Julia version a project's Manifest needs
 #'
 #' Reads the version from the manifest and, where juliaup can supply it,
-#' sets `JULIACONNECTOR_JULIABIN`. A value the user set is left alone, so a
-#' user who has chosen a binary keeps it. A value juliaready set itself,
-#' for an earlier package, is not a choice and does not block matching.
+#' sets `JULIACONNECTOR_JULIABIN`. A binary the user chose, through
+#' `JULIACONNECTOR_JULIABIN` or `JULIA_BINDIR`, is left alone. A value
+#' juliaready set itself, for an earlier package, is not a choice and does
+#' not block matching.
 #' A JuliaConnectoR server that is already running keeps its Julia.
 #'
 #' @inheritParams manifest_julia_version
@@ -129,7 +130,7 @@ juliaup_binary <- function(version) {
 #' @return Invisibly the version used, or `NULL` when none was selected.
 #' @noRd
 match_manifest_julia <- function(project, verbose = TRUE) {
-  if (user_juliabin()) return(invisible(NULL))
+  if (user_juliabin() || nzchar(bindir_julia())) return(invisible(NULL))
   needed <- manifest_julia_version(project)
   if (is.null(needed)) return(invisible(NULL))
   bin <- juliaup_julia(needed, verbose)
