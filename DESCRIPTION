@@ -14,8 +14,8 @@ Description: Helper utilities for R packages that call into a Julia
     segfaults that otherwise leak into R from libR/libjulia symbol
     interactions, environment poisoning, and Pkg operations.
 License: MIT + file LICENSE
-URL: https://github.com/sbfnk/juliaready, https://sbfnk.github.io/juliaready/
-BugReports: https://github.com/sbfnk/juliaready/issues
+URL: https://github.com/epiforecasts/juliaready, https://epiforecasts.io/juliaready/
+BugReports: https://github.com/epiforecasts/juliaready/issues
 Imports:
     JuliaConnectoR,
     stats

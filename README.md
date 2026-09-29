@@ -1,8 +1,8 @@
 # juliaready
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/sbfnk/juliaready/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sbfnk/juliaready/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/sbfnk/juliaready/graph/badge.svg)](https://app.codecov.io/gh/sbfnk/juliaready)
+[![R-CMD-check](https://github.com/epiforecasts/juliaready/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/epiforecasts/juliaready/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/epiforecasts/juliaready/graph/badge.svg)](https://app.codecov.io/gh/epiforecasts/juliaready)
 <!-- badges: end -->
 
 Robust Julia setup for R packages that wrap a Julia engine.
@@ -25,7 +25,7 @@ JuliaCall has a larger ecosystem and more frequent commits, but most of the acti
 
 ```r
 # install.packages("remotes")
-remotes::install_github("sbfnk/juliaready")
+remotes::install_github("epiforecasts/juliaready")
 ```
 
 You also need [Julia](https://julialang.org/) installed; [juliaup](https://github.com/JuliaLang/juliaup) is recommended.
