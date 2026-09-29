@@ -42,7 +42,10 @@ Julia version its \code{Manifest.toml} was resolved with and use that
 version, installing it with juliaup where available. A manifest pins
 standard-library versions that exist only on the version that
 resolved it, so instantiating it under another Julia can fail.
-Ignored when the user has set \code{JULIACONNECTOR_JULIABIN}.}
+Ignored when the user has set \code{JULIACONNECTOR_JULIABIN}. A
+JuliaConnectoR server that is already running, for instance one
+another package started, keeps its Julia: the project is then
+instantiated under the matched version but loaded in the running one.}
 
 \item{verbose}{If \code{TRUE}, print progress messages.}
 }

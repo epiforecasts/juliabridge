@@ -62,7 +62,7 @@ juliaup_julia <- function(version, verbose = TRUE) {
     if (verbose) {
       message(
         "juliaup not found, so Julia ", version, " cannot be installed. ",
-        "Using the Julia on the PATH; see ",
+        "Keeping the current Julia; see ",
         "https://github.com/JuliaLang/juliaup"
       )
     }
@@ -76,7 +76,7 @@ juliaup_julia <- function(version, verbose = TRUE) {
     if (verbose) {
       message(
         "juliaup could not install Julia ", version, " (exit status ",
-        status, "). Using the Julia on the PATH."
+        status, "). Keeping the current Julia."
       )
     }
     return(NULL)
@@ -86,7 +86,7 @@ juliaup_julia <- function(version, verbose = TRUE) {
   if (is.null(bin) && verbose) {
     message(
       "juliaup installed Julia ", version, " but its binary could not be ",
-      "located. Using the Julia on the PATH."
+      "located. Keeping the current Julia."
     )
   }
   bin
