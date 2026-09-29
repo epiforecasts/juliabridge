@@ -9,13 +9,13 @@ Julia setup for R packages that wrap a Julia engine.
 
 `juliaready` collects the patterns you otherwise learn the hard way when building an R package that calls Julia: which Julia binary to use when several are installed, how to install Julia packages without leaving the depot in an unstable state, how to load `.jl` bridge files reliably, and how to manage lazy initialisation. It is small and opinionated, and it replaces about 100 lines of brittle boilerplate per consuming package with about 5.
 
-Internally it uses [JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), which runs Julia in a separate process. The main alternative, [JuliaCall](https://github.com/JuliaInterop/JuliaCall), embeds Julia in the R process. Consumer packages call `juliaready::eval_julia()`, `call_julia()` and `import_julia()` and never touch the backend directly, which keeps the choice of backend in one place.
+## Backend
 
-## Why JuliaConnectoR and not JuliaCall
+juliaready runs Julia through [JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), in a separate process from R. The main alternative, [JuliaCall](https://github.com/JuliaInterop/JuliaCall), embeds Julia in the R process. Both work for simple cases. With JuliaCall, though, R and Julia share memory, threads, signal handlers and the dynamic linker, and a problem in any of them crashes both. We have seen segfaults from `LD_LIBRARY_PATH` poisoning of subprocess Julia, from `Pkg.activate(<path>)` followed by `Pkg.instantiate()` in in-process JuliaCall, and from accessing fields of NamedTuple results via `julia_eval`. With JuliaConnectoR, a Julia segfault closes a TCP socket, R survives, and a crashed simulation can be recovered. Out-of-process Julia also leaves a much shorter list of things you must avoid.
 
-Both work for the simple case. JuliaConnectoR is the better default because it keeps Julia out of R's process. With JuliaCall, R and Julia share memory, threads, signal handlers and the dynamic linker, and a problem in any of them crashes both. We have seen segfaults from `LD_LIBRARY_PATH` poisoning of subprocess Julia, from `Pkg.activate(<path>)` followed by `Pkg.instantiate()` in in-process JuliaCall, and from accessing fields of NamedTuple results via `julia_eval`. With JuliaConnectoR, a Julia segfault closes a TCP socket, R survives, and a crashed simulation can be recovered. The list of things you must not do is also much shorter with out-of-process Julia.
+JuliaCall has a larger ecosystem and more frequent commits, but most of that activity is platform-compatibility work. Its in-process linking problems cannot be fixed without changing its architecture.
 
-JuliaCall has a larger ecosystem and more frequent commits, but most of that activity is platform-compatibility work. The in-process linking problems cannot be fixed without changing its architecture.
+Consumer packages call `juliaready::eval_julia()`, `call_julia()` and `import_julia()` and never touch JuliaConnectoR directly, which keeps the choice of backend in one place.
 
 ## Installation
 
@@ -64,7 +64,7 @@ my_function <- function(x) {
 ## API
 
 - `julia_bin()` resolves the Julia binary, checking `JULIACONNECTOR_JULIABIN`, then `JULIA_BINDIR`, then `PATH`.
-- `julia_ready(packages, github, state_env, install, project, match_manifest, verbose)` installs the required Julia packages in a subprocess, then starts the JuliaConnectoR server and loads them with `using`. With `project = "<path>"`, it activates and instantiates a pinned Julia project (e.g. `inst/julia/Project.toml`) instead of installing packages into the user's default Julia environment. We recommend this for reproducible installs. With `match_manifest = TRUE` (the default) it also uses the Julia version the project's `Manifest.toml` was resolved with, installing it via juliaup where available, because a manifest pins standard libraries that exist only on that version. Once setup has completed, later calls return immediately.
+- `julia_ready(packages, github, state_env, install, project, match_manifest, verbose)` installs the required Julia packages in a subprocess, then starts the JuliaConnectoR server and loads them with `using`. With `project = "<path>"`, it activates and instantiates a pinned Julia project (e.g. `inst/julia/Project.toml`) and sets `JULIA_PROJECT` for the R session. The user's default Julia environment is not modified, although packages are still downloaded into the shared Julia depot. We recommend this for reproducible installs. With `match_manifest = TRUE` (the default) it also uses the Julia version the project's `Manifest.toml` was resolved with, installing it via juliaup where available, because a manifest pins standard libraries that exist only on that version. Once setup has completed, later calls return immediately.
 - `julia_load_bridge(package, files, verbose)` loads `.jl` files from `inst/julia/` of the calling package via `juliaEval`.
 - `ensure_julia(state_env, init_fn)` is a lazy-initialisation guard. Call it at the top of any function that uses Julia.
 - `eval_julia(code)`, `call_julia(name, ...)` and `import_julia(module)` wrap `juliaEval`, `juliaCall` and `juliaImport`, and `get_julia()`, `assign_julia()` and `command_julia()` cover the remaining common operations.
