@@ -82,7 +82,14 @@ juliaup_julia <- function(version, verbose = TRUE) {
     return(NULL)
   }
 
-  juliaup_binary(version)
+  bin <- juliaup_binary(version)
+  if (is.null(bin) && verbose) {
+    message(
+      "juliaup installed Julia ", version, " but its binary could not be ",
+      "located. Using the Julia on the PATH."
+    )
+  }
+  bin
 }
 
 #' Ask the juliaup launcher where a channel's Julia binary is

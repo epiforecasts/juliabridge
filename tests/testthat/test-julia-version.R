@@ -128,3 +128,13 @@ test_that("a JULIACONNECTOR_JULIABIN that does not exist is not a choice", {
   )
   expect_false(user_juliabin())
 })
+
+test_that("a binary juliaup cannot locate is reported", {
+  skip_if_not(nzchar(Sys.which("juliaup")), "juliaup not installed")
+  skip_on_cran()
+  local_mocked_bindings(juliaup_binary = function(version) NULL)
+  expect_message(
+    expect_null(juliaup_julia("1.12")),
+    "could not be located"
+  )
+})
