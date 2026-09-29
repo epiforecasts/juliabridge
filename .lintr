@@ -1,0 +1,11 @@
+linters: linters_with_tags(
+    tags = NULL, # include all linters
+    object_name_linter = NULL,
+    undesirable_function_linter = NULL,
+    implicit_integer_linter = NULL,
+    todo_comment_linter = NULL,
+    function_argument_linter = NULL,
+    indentation_linter = indentation_linter(hanging_indent_style = "never"),
+    backport_linter("4.1.0")
+  )
+

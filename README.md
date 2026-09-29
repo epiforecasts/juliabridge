@@ -1,5 +1,10 @@
 # juliaready
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/sbfnk/juliaready/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sbfnk/juliaready/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/sbfnk/juliaready/graph/badge.svg)](https://app.codecov.io/gh/sbfnk/juliaready)
+<!-- badges: end -->
+
 Robust Julia setup for R packages that wrap a Julia engine.
 
 `juliaready` captures the patterns you have to learn the hard way when building an R package that calls Julia: which Julia binary to use when several are installed, how to install Julia packages cleanly without leaving the depot in an unstable state, how to load `.jl` bridge files reliably, and how to manage lazy initialisation. It is small, opinionated, and meant to replace ~100 lines of brittle boilerplate per consuming package with ~5.
