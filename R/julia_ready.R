@@ -37,7 +37,7 @@
 #'   version, installing it with juliaup where available. A manifest pins
 #'   standard-library versions that exist only on the version that
 #'   resolved it, so instantiating it under another Julia can fail.
-#'   Ignored when `JULIACONNECTOR_JULIABIN` is already set.
+#'   Ignored when the user has set `JULIACONNECTOR_JULIABIN`.
 #' @param verbose If `TRUE`, print progress messages.
 #' @return Invisibly `TRUE`.
 #' @export
@@ -72,7 +72,7 @@ julia_ready <- function(
   }
 
   # Tell JuliaConnectoR which Julia binary to use, then load packages.
-  Sys.setenv(JULIACONNECTOR_JULIABIN = bin)
+  set_juliabin(bin)
   for (pkg in packages) {
     JuliaConnectoR::juliaEval(sprintf("using %s", pkg))
   }

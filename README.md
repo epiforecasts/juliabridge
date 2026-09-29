@@ -74,7 +74,7 @@ my_function <- function(x) {
 - `julia_bin()` resolves the Julia binary, checking `JULIACONNECTOR_JULIABIN`, then `JULIA_BINDIR`, then `PATH`.
 - `julia_ready(packages, github, state_env, install, project, match_manifest, verbose)` installs the required Julia packages in a subprocess, then starts the JuliaConnectoR server and loads them with `using`. Once setup has completed, later calls return immediately.
   - With `project = "<path>"`, it activates and instantiates a pinned Julia project (e.g. `inst/julia/Project.toml`) and sets `JULIA_PROJECT` for the R session. The user's default Julia environment is not modified, although packages are still downloaded into the shared Julia depot. We recommend this for reproducible installs.
-  - With `match_manifest = TRUE` (the default), it also uses the Julia version the project's `Manifest.toml` was resolved with, installing it via juliaup where available. A manifest pins standard libraries that exist only on that version. An existing `JULIACONNECTOR_JULIABIN` setting takes precedence.
+  - With `match_manifest = TRUE` (the default), it also uses the Julia version the project's `Manifest.toml` was resolved with, installing it via juliaup where available. A manifest pins standard libraries that exist only on that version. A `JULIACONNECTOR_JULIABIN` set by the user takes precedence.
 - `julia_load_bridge(package, files, verbose)` loads `.jl` files from `inst/julia/` of the calling package via `juliaEval`.
 - `ensure_julia(state_env, init_fn)` is a lazy-initialisation guard. Call it at the top of any function that uses Julia.
 - `julia_alive(state_env, probe)` checks that the Julia session still holds what you need. If it does not, it clears the setup flag, and the next `julia_ready()` call sets Julia up again.

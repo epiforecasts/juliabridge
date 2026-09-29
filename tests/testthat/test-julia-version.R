@@ -42,3 +42,29 @@ test_that("juliaup_julia returns the binary of an installed channel", {
   version <- system2(bin, "--version", stdout = TRUE)
   expect_match(version, "version 1.12.", fixed = TRUE)
 })
+
+test_that("a binary juliaready set itself does not block matching", {
+  project <- withr::local_tempdir()
+  writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
+  ours <- file.path("", "earlier", "julia")
+  withr::local_envvar(JULIACONNECTOR_JULIABIN = NA)
+  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  set_juliabin(ours)
+  local_mocked_bindings(juliaup_julia = function(version, verbose) {
+    file.path("", "matched", version, "julia")
+  })
+  expect_identical(match_manifest_julia(project, verbose = FALSE), "1.12")
+  expect_identical(
+    Sys.getenv("JULIACONNECTOR_JULIABIN"),
+    file.path("", "matched", "1.12", "julia")
+  )
+})
+
+test_that("a failed juliaup install is reported", {
+  skip_if_not(nzchar(Sys.which("juliaup")), "juliaup not installed")
+  skip_on_cran()
+  expect_message(
+    expect_null(juliaup_julia("0.0.0-nonexistent")),
+    "could not install"
+  )
+})

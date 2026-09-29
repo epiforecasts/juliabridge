@@ -54,7 +54,15 @@ juliaup_julia <- function(version, verbose = TRUE) {
     system2("juliaup", c("add", version), stdout = FALSE, stderr = FALSE),
     error = function(e) 1L
   )
-  if (!identical(as.integer(status), 0L)) return(NULL)
+  if (!identical(as.integer(status), 0L)) {
+    if (verbose) {
+      message(
+        "juliaup could not install Julia ", version, " (exit status ",
+        status, "). Using the Julia on the PATH."
+      )
+    }
+    return(NULL)
+  }
 
   juliaup_binary(version)
 }
@@ -86,20 +94,36 @@ juliaup_binary <- function(version) {
 #' Point JuliaConnectoR at the Julia version a project's Manifest needs
 #'
 #' Reads the version from the manifest and, where juliaup can supply it,
-#' sets `JULIACONNECTOR_JULIABIN`. An existing setting is left alone, so a
-#' user who has chosen a binary keeps it.
+#' sets `JULIACONNECTOR_JULIABIN`. A value the user set is left alone, so a
+#' user who has chosen a binary keeps it. A value juliaready set itself,
+#' for an earlier package, is not a choice and does not block matching.
+#' A JuliaConnectoR server that is already running keeps its Julia.
 #'
 #' @inheritParams manifest_julia_version
 #' @param verbose If `TRUE`, print progress messages.
 #' @return Invisibly the version used, or `NULL` when none was selected.
 #' @noRd
 match_manifest_julia <- function(project, verbose = TRUE) {
-  if (nzchar(Sys.getenv("JULIACONNECTOR_JULIABIN"))) return(invisible(NULL))
+  if (user_juliabin()) return(invisible(NULL))
   needed <- manifest_julia_version(project)
   if (is.null(needed)) return(invisible(NULL))
   bin <- juliaup_julia(needed, verbose)
   if (is.null(bin)) return(invisible(NULL))
   if (verbose) message("Using Julia ", needed, " from ", bin)
-  Sys.setenv(JULIACONNECTOR_JULIABIN = bin)
+  set_juliabin(bin)
   invisible(needed)
+}
+
+#' Set `JULIACONNECTOR_JULIABIN`, remembering that juliaready set it
+#' @noRd
+set_juliabin <- function(bin) {
+  Sys.setenv(JULIACONNECTOR_JULIABIN = bin)
+  .juliaready_state$juliabin <- bin
+}
+
+#' Whether `JULIACONNECTOR_JULIABIN` holds a binary the user chose
+#' @noRd
+user_juliabin <- function() {
+  current <- Sys.getenv("JULIACONNECTOR_JULIABIN")
+  nzchar(current) && !identical(current, .juliaready_state$juliabin)
 }
