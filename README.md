@@ -7,7 +7,15 @@
 
 Julia setup for R packages that wrap a Julia engine.
 
-`juliaready` collects the patterns you otherwise learn the hard way when building an R package that calls Julia: which Julia binary to use when several are installed, how to install Julia packages without leaving the depot in an unstable state, how to load `.jl` bridge files reliably, and how to manage lazy initialisation. It is small and opinionated, and it replaces about 100 lines of brittle boilerplate per consuming package with about 5.
+`juliaready` collects the patterns you otherwise learn the hard way when building an R package that calls Julia:
+
+- which Julia binary to use when several are installed, and which Julia version a pinned project needs;
+- how to install Julia packages without leaving the depot in an unstable state;
+- how to load `.jl` bridge files reliably;
+- how to manage lazy initialisation, and how to recover when the Julia process goes away;
+- how to keep a Julia object alive from R and release it safely.
+
+It is small and opinionated, and it replaces about 100 lines of brittle boilerplate per consuming package with about 5.
 
 ## Backend
 
@@ -64,13 +72,17 @@ my_function <- function(x) {
 ## API
 
 - `julia_bin()` resolves the Julia binary, checking `JULIACONNECTOR_JULIABIN`, then `JULIA_BINDIR`, then `PATH`.
-- `julia_ready(packages, github, state_env, install, project, match_manifest, verbose)` installs the required Julia packages in a subprocess, then starts the JuliaConnectoR server and loads them with `using`. With `project = "<path>"`, it activates and instantiates a pinned Julia project (e.g. `inst/julia/Project.toml`) and sets `JULIA_PROJECT` for the R session. The user's default Julia environment is not modified, although packages are still downloaded into the shared Julia depot. We recommend this for reproducible installs. With `match_manifest = TRUE` (the default) it also uses the Julia version the project's `Manifest.toml` was resolved with, installing it via juliaup where available, because a manifest pins standard libraries that exist only on that version. Once setup has completed, later calls return immediately.
+- `julia_ready(packages, github, state_env, install, project, match_manifest, verbose)` installs the required Julia packages in a subprocess, then starts the JuliaConnectoR server and loads them with `using`. Once setup has completed, later calls return immediately.
+  - With `project = "<path>"`, it activates and instantiates a pinned Julia project (e.g. `inst/julia/Project.toml`) and sets `JULIA_PROJECT` for the R session. The user's default Julia environment is not modified, although packages are still downloaded into the shared Julia depot. We recommend this for reproducible installs.
+  - With `match_manifest = TRUE` (the default), it also uses the Julia version the project's `Manifest.toml` was resolved with, installing it via juliaup where available. A manifest pins standard libraries that exist only on that version. An existing `JULIACONNECTOR_JULIABIN` setting takes precedence.
 - `julia_load_bridge(package, files, verbose)` loads `.jl` files from `inst/julia/` of the calling package via `juliaEval`.
 - `ensure_julia(state_env, init_fn)` is a lazy-initialisation guard. Call it at the top of any function that uses Julia.
+- `julia_alive(state_env, probe)` checks that the Julia session still holds what you need. If it does not, it clears the setup flag, and the next `julia_ready()` call sets Julia up again.
 - `eval_julia(code)`, `call_julia(name, ...)` and `import_julia(module)` wrap `juliaEval`, `juliaCall` and `juliaImport`, and `get_julia()`, `assign_julia()` and `command_julia()` cover the remaining common operations.
-- `julia_alive(state_env, probe)` reports whether the session still holds what you need, and clears the setup flag when it does not, so a Julia process that has gone away can be set up again rather than leaving the session stuck.
-- `manifest_julia_version(project)` reads the Julia version a `Manifest.toml` was resolved with, and `juliaup_julia(version)` installs that version and returns its binary, leaving the user's default channel alone.
-- `julia_handle(handle, session, state_env)`, `julia_handle_owned(x, state_env)` and `julia_release_pending(state_env, release)` hold a Julia object from R by handle: paired with a session token so a handle from a dead session cannot name a live object, and released through a queue, because finalisers may run partway through another Julia call. `julia_handle()` documents the three functions the Julia side supplies.
+- `manifest_julia_version(project)` reads the Julia version a `Manifest.toml` was resolved with. `juliaup_julia(version)` installs a Julia version with juliaup and returns its binary, leaving the user's default channel alone.
+- `julia_handle(handle, session, state_env)` holds a Julia object from R by an integer handle, paired with a token for the Julia session that created it. Both sides compare the token before acting on a handle, which stops a handle from an old session naming an unrelated object in a new one. The help page lists the three definitions the Julia side needs.
+- `julia_release_pending(state_env, release)` releases the Julia objects of handles R has garbage-collected. Finalisers can run partway through another Julia call, so they only queue a release; call this immediately before a Julia call of your own.
+- `julia_handle_owned(x, state_env)` reports whether this R session owns a handle's Julia object. It returns `FALSE` for a handle loaded from a saved R object.
 
 ## Out of scope
 
