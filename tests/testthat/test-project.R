@@ -10,7 +10,8 @@ test_that("julia_ready with project = ... activates and uses the project", {
       'import Pkg; Pkg.activate("%s");',
       'Pkg.add("Distributions"); Pkg.instantiate()'
     ),
-    proj
+    # Backslashes in Windows paths would be read as escapes in a Julia string
+    normalizePath(proj, winslash = "/")
   ))
   expect_true(file.exists(file.path(proj, "Project.toml")))
 
