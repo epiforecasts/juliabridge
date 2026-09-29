@@ -8,6 +8,26 @@ test_that("manifest_julia_version reads the resolving version", {
   expect_identical(manifest_julia_version(project), "1.12")
 })
 
+test_that("manifest_julia_version prefers the newest versioned manifest", {
+  project <- withr::local_tempdir()
+  writeLines("julia_version = \"1.10.4\"", file.path(project, "Manifest.toml"))
+  writeLines(
+    "julia_version = \"1.9.4\"", file.path(project, "Manifest-v1.9.toml")
+  )
+  writeLines(
+    "julia_version = \"1.12.6\"", file.path(project, "Manifest-v1.12.toml")
+  )
+  expect_identical(manifest_julia_version(project), "1.12")
+})
+
+test_that("a versioned manifest's name gives the version it lacks", {
+  project <- withr::local_tempdir()
+  writeLines(
+    "manifest_format = \"2.0\"", file.path(project, "Manifest-v1.11.toml")
+  )
+  expect_identical(manifest_julia_version(project), "1.11")
+})
+
 test_that("manifest_julia_version returns NULL without a version", {
   project <- withr::local_tempdir()
   expect_null(manifest_julia_version(project))

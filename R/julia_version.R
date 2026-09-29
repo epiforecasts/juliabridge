@@ -5,8 +5,13 @@
 #' package shipping a pinned project therefore needs that Julia version to
 #' instantiate cleanly.
 #'
+#' A versioned manifest (`Manifest-v1.12.toml`, supported from Julia 1.11)
+#' takes precedence over `Manifest.toml` on the Julia version it names, so
+#' the highest-versioned one is read when any exist. Its file name gives
+#' the version if the file itself records none.
+#'
 #' @param project Path to a Julia project directory containing a
-#'   `Manifest.toml`.
+#'   `Manifest.toml` or `Manifest-v<major>.<minor>.toml`.
 #' @return The major and minor version as a string (e.g. `"1.12"`), or
 #'   `NULL` when there is no manifest or it records no version.
 #' @export
@@ -15,14 +20,27 @@
 #' manifest_julia_version(system.file("julia", package = "MyPkg"))
 #' }
 manifest_julia_version <- function(project) {
-  manifest <- file.path(project, "Manifest.toml")
-  if (!file.exists(manifest)) return(NULL)
+  # nolint start: nonportable_path_linter. Version patterns, not paths.
+  version_pattern <- "[0-9]+\\.[0-9]+"
+  versioned <- list.files(
+    project, pattern = "^Manifest-v[0-9]+\\.[0-9]+\\.toml$"
+  )
+  # nolint end
+  if (length(versioned) > 0) {
+    named <- regmatches(versioned, regexpr(version_pattern, versioned))
+    newest <- order(numeric_version(named), decreasing = TRUE)[1]
+    manifest <- file.path(project, versioned[newest])
+    fallback <- named[newest]
+  } else {
+    manifest <- file.path(project, "Manifest.toml")
+    if (!file.exists(manifest)) return(NULL)
+    fallback <- NULL
+  }
   recorded <- grep(
     "^julia_version", readLines(manifest, warn = FALSE), value = TRUE
   )
-  # nolint next: nonportable_path_linter. A version pattern, not a path.
-  matched <- regmatches(recorded, regexpr("[0-9]+\\.[0-9]+", recorded))
-  if (length(matched) == 0) NULL else matched[1]
+  matched <- regmatches(recorded, regexpr(version_pattern, recorded))
+  if (length(matched) == 0) fallback else matched[1]
 }
 
 #' Install a Julia version with juliaup and return its binary

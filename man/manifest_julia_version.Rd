@@ -8,7 +8,7 @@ manifest_julia_version(project)
 }
 \arguments{
 \item{project}{Path to a Julia project directory containing a
-\code{Manifest.toml}.}
+\code{Manifest.toml} or \verb{Manifest-v<major>.<minor>.toml}.}
 }
 \value{
 The major and minor version as a string (e.g. \code{"1.12"}), or
@@ -19,6 +19,12 @@ A \code{Manifest.toml} records the Julia version that resolved it, and it
 pins standard-library versions that only exist on that version. A
 package shipping a pinned project therefore needs that Julia version to
 instantiate cleanly.
+}
+\details{
+A versioned manifest (\code{Manifest-v1.12.toml}, supported from Julia 1.11)
+takes precedence over \code{Manifest.toml} on the Julia version it names, so
+the highest-versioned one is read when any exist. Its file name gives
+the version if the file itself records none.
 }
 \examples{
 \dontrun{
