@@ -74,7 +74,7 @@ test_that("a release that keeps failing is dropped after three attempts", {
   )
   for (i in 1:2) julia_release_pending(state, "Bridge.release!")
   expect_length(state$released, 1)
-  julia_release_pending(state, "Bridge.release!")
+  expect_identical(julia_release_pending(state, "Bridge.release!"), 0L)
   expect_null(state$released)
 })
 

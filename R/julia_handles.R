@@ -127,19 +127,19 @@ julia_release_pending <- function(state_env, release) {
   state_env$released <- NULL
   if (!isTRUE(state_env$ready)) return(invisible(0L))
   current <- Filter(function(e) identical(e$setup, state_env$setup), pending)
-  failed <- Filter(function(entry) {
-    inherits(
+  released <- vapply(current, function(entry) {
+    !inherits(
       try(call_julia(release, entry$handle, entry$session), silent = TRUE),
       "try-error"
     )
-  }, current)
-  failed <- lapply(failed, function(entry) {
+  }, logical(1))
+  retry <- lapply(current[!released], function(entry) {
     entry$attempts <- max(entry$attempts, 0L) + 1L
     entry
   })
-  failed <- Filter(function(entry) entry$attempts < 3L, failed)
-  if (length(failed) > 0) {
-    state_env$released <- c(state_env$released, failed)
+  retry <- Filter(function(entry) entry$attempts < 3L, retry)
+  if (length(retry) > 0) {
+    state_env$released <- c(state_env$released, retry)
   }
-  invisible(length(current) - length(failed))
+  invisible(sum(released))
 }
