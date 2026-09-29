@@ -1,23 +1,25 @@
 test_that("ensure_julia calls init_fn when state is not ready", {
   env <- new.env(parent = emptyenv())
-  called <- 0L
+  calls <- new.env()
+  calls$n <- 0L
   init <- function() {
-    called <<- called + 1L
+    calls$n <- calls$n + 1L
     env$ready <- TRUE
   }
   ensure_julia(env, init)
-  expect_equal(called, 1L)
+  expect_identical(calls$n, 1L)
 })
 
 test_that("ensure_julia is a no-op when already ready", {
   env <- new.env(parent = emptyenv())
   env$ready <- TRUE
-  called <- 0L
+  calls <- new.env()
+  calls$n <- 0L
   init <- function() {
-    called <<- called + 1L
+    calls$n <- calls$n + 1L
   }
   ensure_julia(env, init)
-  expect_equal(called, 0L)
+  expect_identical(calls$n, 0L)
 })
 
 test_that("ensure_julia returns invisibly", {

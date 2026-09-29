@@ -1,11 +1,13 @@
+# Regular expressions matching URLs are not file paths.
+# nolint start: nonportable_path_linter.
 test_that("registry install code is built correctly", {
-  code <- juliaready:::.install_code("Distributions", character())
+  code <- .install_code("Distributions", character())
   expect_match(code, 'Pkg\\.add\\("Distributions"\\)')
   expect_match(code, "using Distributions")
 })
 
 test_that("github shorthand owner/repo is expanded to full URL", {
-  code <- juliaready:::.install_code(
+  code <- .install_code(
     "EpiBranch",
     c(EpiBranch = "epiforecasts/EpiBranch.jl")
   )
@@ -15,7 +17,7 @@ test_that("github shorthand owner/repo is expanded to full URL", {
 })
 
 test_that("github subdir spec owner/repo:subdir is parsed", {
-  code <- juliaready:::.install_code(
+  code <- .install_code(
     "EpiAware",
     c(EpiAware = "CDCgov/Rt-without-renewal:EpiAware")
   )
@@ -24,9 +26,10 @@ test_that("github subdir spec owner/repo:subdir is parsed", {
 })
 
 test_that("full URL is passed through unchanged", {
-  code <- juliaready:::.install_code(
+  code <- .install_code(
     "Foo",
     c(Foo = "https://gitlab.example.org/x/Foo.jl")
   )
   expect_match(code, "https://gitlab\\.example\\.org/x/Foo\\.jl")
 })
+# nolint end

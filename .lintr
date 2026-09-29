@@ -8,4 +8,4 @@ linters: linters_with_tags(
     indentation_linter = indentation_linter(hanging_indent_style = "never"),
     backport_linter("4.1.0")
   )
-
+exclusions: list("tests/testthat.R")

@@ -10,5 +10,5 @@ test_that("julia_bin returns a path or empty string", {
 test_that("julia_bin returns an executable file when Julia is installed", {
   bin <- julia_bin()
   skip_if_not(nzchar(bin), "Julia not installed")
-  expect_true(file.access(bin, mode = 1) == 0)
+  expect_identical(unname(file.access(bin, mode = 1)), 0L)
 })
