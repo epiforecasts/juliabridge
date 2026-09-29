@@ -10,6 +10,7 @@ julia_ready(
   state_env = new.env(parent = emptyenv()),
   install = TRUE,
   project = NULL,
+  match_manifest = TRUE,
   verbose = TRUE
 )
 }
@@ -35,6 +36,13 @@ server picks up the project. Use this when your package ships a
 pinned Julia environment under \verb{inst/julia/}. With \code{project} set,
 \code{packages} typically do not need to be installed individually —
 \code{Pkg.instantiate()} will fetch them from the project's manifest.}
+
+\item{match_manifest}{If \code{TRUE} and \code{project} is supplied, read the
+Julia version its \code{Manifest.toml} was resolved with and use that
+version, installing it with juliaup where available. A manifest pins
+standard-library versions that exist only on the version that
+resolved it, so instantiating it under another Julia can fail.
+Ignored when \code{JULIACONNECTOR_JULIABIN} is already set.}
 
 \item{verbose}{If \code{TRUE}, print progress messages.}
 }

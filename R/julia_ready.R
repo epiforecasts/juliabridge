@@ -32,6 +32,12 @@
 #'   pinned Julia environment under `inst/julia/`. With `project` set,
 #'   `packages` typically do not need to be installed individually —
 #'   `Pkg.instantiate()` will fetch them from the project's manifest.
+#' @param match_manifest If `TRUE` and `project` is supplied, read the
+#'   Julia version its `Manifest.toml` was resolved with and use that
+#'   version, installing it with juliaup where available. A manifest pins
+#'   standard-library versions that exist only on the version that
+#'   resolved it, so instantiating it under another Julia can fail.
+#'   Ignored when `JULIACONNECTOR_JULIABIN` is already set.
 #' @param verbose If `TRUE`, print progress messages.
 #' @return Invisibly `TRUE`.
 #' @export
@@ -50,10 +56,14 @@ julia_ready <- function(
   state_env = new.env(parent = emptyenv()),
   install = TRUE,
   project = NULL,
+  match_manifest = TRUE,
   verbose = TRUE
 ) {
   if (isTRUE(state_env$ready)) return(invisible(TRUE))
 
+  if (!is.null(project) && isTRUE(match_manifest)) {
+    match_manifest_julia(project, verbose)
+  }
   bin <- check_julia_bin(julia_bin())
   if (is.null(project)) {
     install_julia_packages(packages, github, bin, install, verbose)
