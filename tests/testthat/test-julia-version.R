@@ -47,7 +47,8 @@ test_that("juliaup_julia reports rather than fails when juliaup is absent", {
 test_that("a binary already chosen is left alone", {
   project <- withr::local_tempdir()
   writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
-  chosen <- file.path("", "some", "julia")
+  chosen <- withr::local_tempfile()
+  file.create(chosen)
   withr::local_envvar(JULIACONNECTOR_JULIABIN = chosen)
   expect_null(match_manifest_julia(project, verbose = FALSE))
   expect_identical(Sys.getenv("JULIACONNECTOR_JULIABIN"), chosen)
@@ -118,5 +119,12 @@ test_that("a binary found on the PATH is recognised as juliaready's own", {
   withr::local_envvar(JULIACONNECTOR_JULIABIN = NA)
   withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
   set_juliabin(c(julia = file.path("", "usr", "bin", "julia")))
+  expect_false(user_juliabin())
+})
+
+test_that("a JULIACONNECTOR_JULIABIN that does not exist is not a choice", {
+  withr::local_envvar(
+    JULIACONNECTOR_JULIABIN = file.path(tempdir(), "no-such-julia")
+  )
   expect_false(user_juliabin())
 })

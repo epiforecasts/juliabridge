@@ -142,8 +142,12 @@ set_juliabin <- function(bin) {
 }
 
 #' Whether `JULIACONNECTOR_JULIABIN` holds a binary the user chose
+#'
+#' A path that does not exist is not a usable choice: [julia_bin()] skips
+#' it, and it is replaced like any other value juliaready manages.
 #' @noRd
 user_juliabin <- function() {
   current <- Sys.getenv("JULIACONNECTOR_JULIABIN")
-  nzchar(current) && !identical(current, .juliaready_state$juliabin)
+  nzchar(current) && file.exists(current) &&
+    !identical(current, .juliaready_state$juliabin)
 }
