@@ -44,56 +44,21 @@
 #'   state_env = .my_pkg_env
 #' )
 #' }
-julia_ready <- function(packages,
-                        github = character(),
-                        state_env = new.env(parent = emptyenv()),
-                        install = TRUE,
-                        project = NULL,
-                        verbose = TRUE) {
+julia_ready <- function(
+  packages,
+  github = character(),
+  state_env = new.env(parent = emptyenv()),
+  install = TRUE,
+  project = NULL,
+  verbose = TRUE
+) {
   if (isTRUE(state_env$ready)) return(invisible(TRUE))
 
-  bin <- julia_bin()
-  if (!nzchar(bin) || !file.exists(bin)) {
-    stop("Julia not found. Install Julia (juliaup recommended: ",
-         "https://github.com/JuliaLang/juliaup) or set JULIA_BINDIR.",
-         call. = FALSE)
-  }
-
-  if (!is.null(project)) {
-    # Project-based setup: instantiate the pinned environment, then tell
-    # JuliaConnectoR to start with that project active.
-    project <- normalizePath(project, mustWork = TRUE)
-    proj_jl <- gsub("\\", "/", project, fixed = TRUE)
-    if (!file.exists(file.path(project, "Project.toml"))) {
-      stop("No Project.toml found in ", project, call. = FALSE)
-    }
-    if (verbose) message("Instantiating Julia project: ", project)
-    julia_subprocess(
-      sprintf('import Pkg; Pkg.activate("%s"); Pkg.instantiate()', proj_jl),
-      bin = bin
-    )
-    Sys.setenv(JULIA_PROJECT = project)
+  bin <- check_julia_bin(julia_bin())
+  if (is.null(project)) {
+    install_julia_packages(packages, github, bin, install, verbose)
   } else {
-    # Default-depot setup: ensure each package is installed individually.
-    installed_anything <- FALSE
-    for (pkg in packages) {
-      code <- sprintf("using %s", pkg)
-      ok <- julia_subprocess(code, check = FALSE, bin = bin)
-      if (!ok) {
-        if (!install) {
-          stop("Julia package '", pkg, "' is not installed and ",
-               "install = FALSE.", call. = FALSE)
-        }
-        if (verbose) message("Installing Julia package: ", pkg, " ...")
-        install_code <- .install_code(pkg, github)
-        julia_subprocess(install_code, bin = bin)
-        installed_anything <- TRUE
-      }
-    }
-    if (installed_anything) {
-      if (verbose) message("Precompiling Julia depot...")
-      julia_subprocess("import Pkg; Pkg.precompile()", bin = bin)
-    }
+    instantiate_julia_project(project, bin, verbose)
   }
 
   # Tell JuliaConnectoR which Julia binary to use, then load packages.
@@ -106,28 +71,73 @@ julia_ready <- function(packages,
   invisible(TRUE)
 }
 
+#' Instantiate a pinned Julia project and make it the active project
+#'
+#' JuliaConnectoR starts its server with `JULIA_PROJECT` active.
+#' @noRd
+instantiate_julia_project <- function(project, bin, verbose) {
+  project <- normalizePath(project, mustWork = TRUE)
+  proj_jl <- gsub("\\", "/", project, fixed = TRUE)
+  if (!file.exists(file.path(project, "Project.toml"))) {
+    stop("No Project.toml found in ", project, call. = FALSE)
+  }
+  if (verbose) message("Instantiating Julia project: ", project)
+  julia_subprocess(
+    sprintf('import Pkg; Pkg.activate("%s"); Pkg.instantiate()', proj_jl),
+    bin = bin
+  )
+  Sys.setenv(JULIA_PROJECT = project)
+}
+
+#' Install any missing packages into the default depot
+#'
+#' Each package is checked individually so only missing ones are added.
+#' @noRd
+install_julia_packages <- function(packages, github, bin, install, verbose) {
+  missing_pkgs <- packages[!vapply(
+    packages,
+    function(pkg) {
+      julia_subprocess(sprintf("using %s", pkg), check = FALSE, bin = bin)
+    },
+    logical(1)
+  )]
+  if (length(missing_pkgs) == 0) return(invisible())
+  if (!install) {
+    stop(
+      "Julia package(s) not installed and install = FALSE: ",
+      toString(missing_pkgs),
+      call. = FALSE
+    )
+  }
+  for (pkg in missing_pkgs) {
+    if (verbose) message("Installing Julia package: ", pkg, " ...")
+    julia_subprocess(.install_code(pkg, github), bin = bin)
+  }
+  if (verbose) message("Precompiling Julia depot...")
+  julia_subprocess("import Pkg; Pkg.precompile()", bin = bin)
+}
+
 #' Build the Julia code to install a package, registry or GitHub.
 #' @noRd
 .install_code <- function(pkg, github) {
   if (pkg %in% names(github)) {
     spec <- github[[pkg]]
+    subdir <- NULL
     if (startsWith(spec, "http://") || startsWith(spec, "https://")) {
-      url <- spec
-      subdir <- NULL
-    } else if (grepl(":", spec)) {
+      repo_url <- spec
+    } else if (grepl(":", spec, fixed = TRUE)) {
       parts <- strsplit(spec, ":", fixed = TRUE)[[1]]
-      url <- paste0("https://github.com/", parts[1])
+      repo_url <- paste0("https://github.com/", parts[1])
       subdir <- parts[2]
     } else {
-      url <- paste0("https://github.com/", spec)
-      subdir <- NULL
+      repo_url <- paste0("https://github.com/", spec)
     }
     pkgspec <- if (is.null(subdir)) {
-      sprintf('Pkg.PackageSpec(url="%s")', url)
+      sprintf('Pkg.PackageSpec(url="%s")', repo_url)
     } else {
-      sprintf('Pkg.PackageSpec(url="%s", subdir="%s")', url, subdir)
+      sprintf('Pkg.PackageSpec(url="%s", subdir="%s")', repo_url, subdir)
     }
-    sprintf('import Pkg; Pkg.add(%s); using %s', pkgspec, pkg)
+    sprintf("import Pkg; Pkg.add(%s); using %s", pkgspec, pkg)
   } else {
     sprintf('import Pkg; Pkg.add("%s"); using %s', pkg, pkg)
   }

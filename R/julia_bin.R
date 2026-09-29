@@ -5,7 +5,8 @@
 #' starting the JuliaConnectoR server.
 #'
 #' Detection order:
-#'   1. `JULIACONNECTOR_JULIABIN` env var (JuliaConnectoR's preferred mechanism).
+#'   1. `JULIACONNECTOR_JULIABIN` env var (JuliaConnectoR's preferred
+#'      mechanism).
 #'   2. `JULIA_BINDIR` env var (Julia's own; `joinpath(JULIA_BINDIR, "julia")`).
 #'   3. `Sys.which("julia")` — fallback to PATH.
 #'
@@ -44,38 +45,56 @@ julia_bin <- function() {
 #'   `TRUE` on success (errors otherwise).
 #' @noRd
 julia_subprocess <- function(code, check = TRUE, bin = julia_bin()) {
-  if (!nzchar(bin) || !file.exists(bin)) {
-    stop("Julia not found. Install Julia (juliaup recommended: ",
-         "https://github.com/JuliaLang/juliaup) or set JULIA_BINDIR.",
-         call. = FALSE)
-  }
-  poison_vars <- c("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH",
-                   "DYLD_FALLBACK_LIBRARY_PATH")
-  saved <- vapply(poison_vars, function(v) Sys.getenv(v, unset = NA),
-                  character(1))
-  on.exit({
-    for (v in poison_vars) {
-      old <- saved[[v]]
-      if (is.na(old)) {
-        Sys.unsetenv(v)
-      } else {
-        do.call(Sys.setenv, stats::setNames(list(old), v))
-      }
-    }
-  }, add = TRUE)
-  for (v in poison_vars) Sys.unsetenv(v)
-
-  res <- suppressWarnings(system2(
-    bin,
-    args = c("--startup-file=no", "-e", shQuote(code)),
-    stdout = if (check) "" else FALSE,
-    stderr = if (check) "" else FALSE
-  ))
+  check_julia_bin(bin)
+  res <- with_unset_env(
+    c("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH"),
+    suppressWarnings(system2(
+      bin,
+      args = c("--startup-file=no", "-e", shQuote(code)),
+      stdout = if (check) "" else FALSE,
+      stderr = if (check) "" else FALSE
+    ))
+  )
   status <- if (is.numeric(res)) res else attr(res, "status")
   ok <- is.null(status) || status == 0
   if (check && !ok) {
-    stop("Julia subprocess failed (exit ", status, "). Code:\n", code,
-         call. = FALSE)
+    stop(
+      "Julia subprocess failed (exit ", status, "). Code:\n", code,
+      call. = FALSE
+    )
   }
   if (check) invisible(TRUE) else ok
+}
+
+#' Error if the Julia binary is missing
+#' @noRd
+check_julia_bin <- function(bin) {
+  if (!nzchar(bin) || !file.exists(bin)) {
+    stop(
+      "Julia not found. Install Julia (juliaup recommended: ",
+      "https://github.com/JuliaLang/juliaup) or set JULIA_BINDIR.",
+      call. = FALSE
+    )
+  }
+  invisible(bin)
+}
+
+#' Evaluate an expression with environment variables unset
+#'
+#' The variables are restored to their previous values (or left unset)
+#' afterwards, even on error.
+#' @noRd
+with_unset_env <- function(vars, expr) {
+  saved <- vapply(vars, Sys.getenv, character(1), unset = NA)
+  on.exit({
+    for (v in vars) {
+      if (is.na(saved[[v]])) {
+        Sys.unsetenv(v)
+      } else {
+        do.call(Sys.setenv, stats::setNames(list(saved[[v]]), v))
+      }
+    }
+  }, add = TRUE)
+  Sys.unsetenv(vars)
+  expr
 }

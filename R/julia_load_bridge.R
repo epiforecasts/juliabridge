@@ -27,8 +27,11 @@ julia_load_bridge <- function(package, files, verbose = FALSE) {
       path <- system.file("inst", "julia", f, package = package)
     }
     if (!nzchar(path) || !file.exists(path)) {
-      stop("Bridge file not found: inst/julia/", f,
-           " in package '", package, "'", call. = FALSE)
+      stop(
+        "Bridge file not found: inst/julia/", f,
+        " in package '", package, "'",
+        call. = FALSE
+      )
     }
     if (verbose) message("Loading Julia bridge: ", f)
     code <- paste(readLines(path), collapse = "\n")
