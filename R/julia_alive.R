@@ -9,12 +9,12 @@
 #' fails, so the next [julia_ready()] call sets Julia up again. The
 #' environment itself is kept, because callers may use its identity.
 #'
-#' @param state_env The environment given to [julia_ready()].
 #' JuliaConnectoR starts a new server whenever its connection has gone,
 #' so the check itself may start Julia. The default probe is `FALSE` in
 #' such a server, because only the server [julia_ready()] ran in holds the
 #' token it recorded.
 #'
+#' @param state_env The environment given to [julia_ready()].
 #' @param probe Julia code returning a `Bool`, evaluated to decide whether
 #'   the session still holds what the caller needs. The default checks
 #'   that this is the server `state_env` was set up in. A caller can ask
