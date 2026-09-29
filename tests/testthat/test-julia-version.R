@@ -88,3 +88,35 @@ test_that("a failed juliaup install is reported", {
     "could not install"
   )
 })
+
+test_that("a user-chosen binary survives repeated setups", {
+  chosen <- unname(julia_bin())
+  skip_if_not(nzchar(chosen), "Julia not installed")
+  project <- withr::local_tempdir()
+  writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
+  withr::local_envvar(JULIACONNECTOR_JULIABIN = chosen)
+  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  local_mocked_bindings(
+    instantiate_julia_project = function(...) invisible(NULL),
+    mark_setup = function(...) invisible(NULL),
+    juliaup_julia = function(...) stop("should not be called", call. = FALSE)
+  )
+  local_mocked_bindings(
+    juliaEval = function(...) NULL,
+    .package = "JuliaConnectoR"
+  )
+  for (i in 1:2) {
+    julia_ready(
+      packages = character(), state_env = new.env(), project = project,
+      verbose = FALSE
+    )
+  }
+  expect_identical(Sys.getenv("JULIACONNECTOR_JULIABIN"), chosen)
+})
+
+test_that("a binary found on the PATH is recognised as juliaready's own", {
+  withr::local_envvar(JULIACONNECTOR_JULIABIN = NA)
+  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  set_juliabin(c(julia = file.path("", "usr", "bin", "julia")))
+  expect_false(user_juliabin())
+})

@@ -71,8 +71,10 @@ julia_ready <- function(
     instantiate_julia_project(project, bin, verbose)
   }
 
-  # Tell JuliaConnectoR which Julia binary to use, then load packages.
-  set_juliabin(bin)
+  # Tell JuliaConnectoR which Julia binary to use, then load packages. A
+  # binary the user chose is already set, and recording it as juliaready's
+  # own would let a later setup override it.
+  if (!user_juliabin()) set_juliabin(bin)
   for (pkg in packages) {
     JuliaConnectoR::juliaEval(sprintf("using %s", pkg))
   }

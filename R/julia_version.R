@@ -135,6 +135,8 @@ match_manifest_julia <- function(project, verbose = TRUE) {
 #' Set `JULIACONNECTOR_JULIABIN`, remembering that juliaready set it
 #' @noRd
 set_juliabin <- function(bin) {
+  # Sys.which() names its result, which Sys.getenv() will not match.
+  bin <- unname(bin)
   Sys.setenv(JULIACONNECTOR_JULIABIN = bin)
   .juliaready_state$juliabin <- bin
 }
