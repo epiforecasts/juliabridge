@@ -13,7 +13,8 @@ julia(code, role = NULL)
 is accepted wherever a component is expected.}
 }
 \value{
-An object of class \code{julia_julia}.
+An object of class \code{julia_code}, which is also a
+\code{julia_component}.
 }
 \description{
 Marks a string as Julia source to be inserted verbatim when a component is

@@ -5,6 +5,8 @@ test_that("scalars render as Julia literals", {
   expect_identical(.render(1e-20), "1e-20")
   expect_identical(.render(-Inf), "-Inf")
   expect_identical(.render(NA_real_), "missing")
+  expect_identical(.render(NA_character_), "missing")
+  expect_identical(.render(c("a", NA)), "[\"a\", missing]")
   expect_identical(.render(NaN), "NaN")
   expect_identical(.render(TRUE), "true")
   expect_identical(.render("a\"b"), "\"a\\\"b\"")
@@ -114,6 +116,13 @@ test_that("printing breaks a long component over lines", {
   lines <- .format_code(nested)
   expect_gt(length(lines), 1)
   expect_true(all(nchar(lines) <= 78))
+  # The separators are what make the broken-up form valid Julia: dropping
+  # them still gives lines that fit and a plausible header.
+  expect_identical(
+    gsub("[[:space:]]", "", paste(lines, collapse = "")),
+    gsub("[[:space:]]", "", as_julia(nested))
+  )
+  expect_identical(format(nested), lines)
   expect_output(print(nested), "<julia model component>")
   expect_output(print(julia("exp")), "<julia Julia code>")
   expect_output(print(component("Normal")), "Normal\\(\\)")
@@ -185,6 +194,24 @@ test_that("a broken-up print agrees with the rendered code", {
 })
 
 test_that("a matrix keeps its shape", {
+  # A non-square case: reversing the dimensions, the natural row-major
+  # mistake, would hand Julia a transposed matrix and pass a square test.
+  expect_identical(
+    .render(matrix(1:6, nrow = 2)), "reshape([1, 2, 3, 4, 5, 6], (2, 3))"
+  )
+  expect_identical(.render(matrix(2.5, 1, 1)), "reshape([2.5], (1, 1))")
+  expect_identical(
+    .render(matrix(c("a", "b", "c", "d"), 2)),
+    "reshape([\"a\", \"b\", \"c\", \"d\"], (2, 2))"
+  )
+  expect_identical(
+    as_julia(component("F", m = matrix(1:4, 2))),
+    "F(; m = reshape([1, 2, 3, 4], (2, 2)))"
+  )
+  expect_error(
+    .render(matrix(1:4, 2, 2, dimnames = list(c("a", "b"), c("x", "y")))),
+    "Named vectors and arrays"
+  )
   # R and Julia both store column-major, so the elements travel as they are
   # and reshape restores the shape. Julia reads this back as a Matrix.
   expect_identical(

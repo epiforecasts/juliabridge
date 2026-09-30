@@ -8,8 +8,9 @@ Authors@R:
 Description: Helper utilities for R packages that call into a Julia
     simulation engine. Provides a small, opinionated API for finding
     the Julia binary, installing required Julia packages, loading
-    '.jl' bridge files, managing lazy initialisation, and holding
-    Julia objects from R between calls. Uses
+    '.jl' bridge files, managing lazy initialisation, describing Julia
+    calls in R and rendering them to Julia source, and holding Julia
+    objects from R between calls. Uses
     JuliaConnectoR (out-of-process Julia via TCP) under the hood,
     chosen over JuliaCall to structurally avoid the embedded-Julia
     segfaults that otherwise leak into R from libR/libjulia symbol
