@@ -16,9 +16,14 @@
 #' Integers (e.g. `2L`) render as Julia integers and doubles as floats.
 #' A `NULL` keyword argument is dropped, so the Julia default applies; a
 #' `NULL` positional argument is an error, since dropping it would renumber
-#' the arguments that follow.
+#' the arguments that follow. A matrix or array keeps its shape, arriving in
+#' Julia as a `Matrix` or `Array` of the same dimensions. A named vector, a
+#' named list and an empty value are all refused, since Julia would read them
+#' as something the R value did not say.
 #'
-#' @param fn Character string. Name of the Julia constructor.
+#' @param .fn Character string. Name of the Julia constructor. It is spelled
+#'   with a dot so that a Julia keyword named `f` or `fn` still reaches `...`
+#'   rather than being taken for this argument.
 #' @param ... Arguments to the constructor. Unnamed arguments are positional
 #'   and named arguments become keyword arguments. Keyword names may contain
 #'   non-ASCII characters.
@@ -28,7 +33,9 @@
 #'   components are composed sensibly. `NULL` leaves the component untyped,
 #'   which every role accepts.
 #'
-#' @return An object of class `julia_component`.
+#' @return An object of class `julia_component`, holding the constructor name
+#'   in `$fn`, the positional arguments in `$args` and the keyword arguments
+#'   in `$kwargs`. A package may read those to inspect or rewrite a call.
 #'
 #' @examples
 #' component("Normal", 0, 1, role = "prior")
@@ -36,8 +43,8 @@
 #' # Keyword arguments, and a component nested inside another
 #' component("Truncated", component("Normal", 0, 1), lower = 0)
 #' @export
-component <- function(fn, ..., role = NULL) {
-  .assert_name(fn, "fn")
+component <- function(.fn, ..., role = NULL) {
+  .assert_name(.fn, ".fn")
   if (!is.null(role)) .assert_role_name(role)
   dots <- list(...)
   arg_names <- names(dots)
@@ -66,7 +73,7 @@ component <- function(fn, ..., role = NULL) {
   }
   structure(
     list(
-      fn = fn,
+      fn = .fn,
       args = unname(dots[keep & !named]),
       kwargs = dots[keep & named]
     ),
@@ -86,7 +93,8 @@ component <- function(fn, ..., role = NULL) {
 #' @param role Optional role (see [component()]). Without one the expression
 #'   is accepted wherever a component is expected.
 #'
-#' @return An object of class `julia_julia`.
+#' @return An object of class `julia_code`, which is also a
+#'   `julia_component`.
 #'
 #' @examples
 #' # A Julia function, which has no R equivalent to render
@@ -173,11 +181,11 @@ as_julia <- function(x, ascii = FALSE) {
   if (length(x) == 0) {
     stop("Cannot render an empty value as Julia code.", call. = FALSE)
   }
-  if (!is.null(names(x))) {
+  if (!is.null(names(x)) || !is.null(dimnames(x))) {
     stop(
-      "Named vectors cannot be rendered as Julia values, since Julia reads ",
-      "them as a plain vector and the names would be lost. Drop the names, ",
-      "or pass the pieces separately.",
+      "Named vectors and arrays cannot be rendered as Julia values, since ",
+      "Julia reads them as a plain vector or array and the names would be ",
+      "lost. Drop the names, or pass the pieces separately.",
       call. = FALSE
     )
   }
@@ -188,7 +196,7 @@ as_julia <- function(x, ascii = FALSE) {
   } else if (is.numeric(x)) {
     vapply(x, .render_float, character(1), USE.NAMES = FALSE)
   } else if (is.character(x)) {
-    vapply(x, .render_string, character(1), USE.NAMES = FALSE)
+    vapply(x, .render_character, character(1), USE.NAMES = FALSE)
   } else {
     stop(
       "Cannot render an object of class '", class(x)[1], "' as Julia code.",
@@ -323,6 +331,15 @@ as_julia_value.default <- function(x, ...) {
   if (as.numeric(out) != x) out <- sprintf("%.17g", x)
   if (!grepl("[.e]", out)) out <- paste0(out, ".0")
   out
+}
+
+#' Render one character value, which may be missing
+#'
+#' @param x A character scalar.
+#' @return A character string.
+#' @noRd
+.render_character <- function(x) {
+  if (is.na(x)) "missing" else .render_string(x)
 }
 
 #' Render a string as an ASCII Julia string literal
@@ -547,6 +564,11 @@ assert_role <- function(
     )
   }
   invisible(TRUE)
+}
+
+#' @export
+format.julia_component <- function(x, ...) {
+  .format_code(x)
 }
 
 #' @export

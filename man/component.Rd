@@ -4,10 +4,12 @@
 \alias{component}
 \title{Describe a Julia constructor call}
 \usage{
-component(fn, ..., role = NULL)
+component(.fn, ..., role = NULL)
 }
 \arguments{
-\item{fn}{Character string. Name of the Julia constructor.}
+\item{.fn}{Character string. Name of the Julia constructor. It is spelled
+with a dot so that a Julia keyword named \code{f} or \code{fn} still reaches \code{...}
+rather than being taken for this argument.}
 
 \item{...}{Arguments to the constructor. Unnamed arguments are positional
 and named arguments become keyword arguments. Keyword names may contain
@@ -20,7 +22,9 @@ components are composed sensibly. \code{NULL} leaves the component untyped,
 which every role accepts.}
 }
 \value{
-An object of class \code{julia_component}.
+An object of class \code{julia_component}, holding the constructor name
+in \verb{$fn}, the positional arguments in \verb{$args} and the keyword arguments
+in \verb{$kwargs}. A package may read those to inspect or rewrite a call.
 }
 \description{
 Records a call to a Julia constructor as an R object, rendered to Julia
@@ -36,7 +40,10 @@ scalars and longer ones become vectors, unnamed lists become vectors,
 Integers (e.g. \code{2L}) render as Julia integers and doubles as floats.
 A \code{NULL} keyword argument is dropped, so the Julia default applies; a
 \code{NULL} positional argument is an error, since dropping it would renumber
-the arguments that follow.
+the arguments that follow. A matrix or array keeps its shape, arriving in
+Julia as a \code{Matrix} or \code{Array} of the same dimensions. A named vector, a
+named list and an empty value are all refused, since Julia would read them
+as something the R value did not say.
 }
 \examples{
 component("Normal", 0, 1, role = "prior")
