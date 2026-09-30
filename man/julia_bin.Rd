@@ -20,6 +20,6 @@ Detection order:
 \item \code{JULIACONNECTOR_JULIABIN} env var (JuliaConnectoR's preferred
 mechanism).
 \item \code{JULIA_BINDIR} env var (Julia's own; \code{joinpath(JULIA_BINDIR, "julia")}).
-\item \code{Sys.which("julia")} — fallback to PATH.
+\item The \code{julia} on the \code{PATH} (\code{Sys.which("julia")}).
 }
 }

@@ -1,8 +1,8 @@
 #' Backend-agnostic wrappers around Julia eval / call / import
 #'
-#' These thin wrappers exist so consumer packages can call into Julia
-#' without directly depending on JuliaConnectoR. If `juliaready` ever
-#' switches backend, consumer code keeps working.
+#' These thin wrappers let consumer packages call into Julia through
+#' juliaready alone. If `juliaready` ever switches backend, consumer code
+#' keeps working.
 #'
 #' @name wrappers
 NULL
@@ -19,8 +19,8 @@ eval_julia <- function(code) {
 #' Call a Julia function by (qualified) name
 #'
 #' The function name may be module-qualified (e.g. `"Distributions.mean"`).
-#' Module qualification is recommended after `using` so that constructor
-#' names resolve unambiguously.
+#' Qualifying the name after `using` makes constructor names resolve
+#' unambiguously.
 #'
 #' @param name Function name, optionally module-qualified.
 #' @param ... Arguments passed to the Julia function.

@@ -4,14 +4,14 @@
 #' callable from R via JuliaConnectoR:
 #'
 #' 1. Locates the Julia binary (see [julia_bin()]).
-#' 2. For each required package, checks it loads in a Julia subprocess.
-#'    If a package is missing and `install = TRUE`, installs it (from a
-#'    GitHub URL if listed in `github`, otherwise from the General
-#'    registry). Subprocess work avoids any interaction with the running
-#'    JuliaConnectoR server.
+#' 2. Without `project`, checks in a Julia subprocess that each required
+#'    package loads. If a package is missing and `install = TRUE`, installs
+#'    it (from a GitHub URL if listed in `github`, otherwise from the
+#'    General registry). With `project`, instantiates that project instead.
+#'    Both run in a subprocess, apart from the JuliaConnectoR server.
 #' 3. Starts (or attaches to) the JuliaConnectoR server.
-#' 4. Loads each package via `juliaEval("using <pkg>")`, so dotted
-#'    constructor names like `EpiBranch.NegBin` resolve correctly.
+#' 4. Loads each package with `juliaEval("using <pkg>")`. Dotted
+#'    constructor names such as `EpiBranch.NegBin` then resolve.
 #'
 #' Idempotent: if `state_env$ready` is already `TRUE`, returns immediately.
 #'
@@ -21,17 +21,28 @@
 #'   the General registry. Names must match entries in `packages`. Values
 #'   may be a full URL, an `"owner/repo"` shorthand, or `"owner/repo:subdir"`.
 #' @param state_env An environment used to track initialisation state. The
-#'   caller (typically a wrapping R package) supplies its own environment
-#'   so multiple consuming packages do not interfere with each other.
-#' @param install If `FALSE`, fail rather than installing missing packages.
+#'   caller (typically a wrapping R package) supplies its own environment.
+#'   Several consuming packages then keep separate state.
+#' @param install If `FALSE`, a missing package is an error.
 #' @param project Optional path to a Julia project directory containing a
 #'   `Project.toml` (and ideally a `Manifest.toml`). When supplied, the
-#'   project is activated and instantiated in a subprocess, and
-#'   `JULIA_PROJECT` is set before starting JuliaConnectoR so that the
-#'   server picks up the project. Use this when your package ships a
-#'   pinned Julia environment under `inst/julia/`. With `project` set,
-#'   `packages` typically do not need to be installed individually —
-#'   `Pkg.instantiate()` will fetch them from the project's manifest.
+#'   project is activated and instantiated in a subprocess. Setting
+#'   `JULIA_PROJECT` before JuliaConnectoR starts makes the server use the
+#'   project. Use this when your package ships a pinned Julia
+#'   environment under `inst/julia/`. `Pkg.instantiate()` fetches
+#'   everything in the project's manifest; `packages` then only names the
+#'   packages to load with `using`.
+#' @param match_manifest If `TRUE` and `project` is supplied, read the
+#'   Julia version its `Manifest.toml` was resolved with and use that
+#'   version, installing it with juliaup where available. Instantiating a
+#'   manifest under a different Julia can fail, because it pins
+#'   standard-library versions that exist only on the version that
+#'   resolved it.
+#'   Ignored when the user has chosen a binary through
+#'   `JULIACONNECTOR_JULIABIN` or `JULIA_BINDIR`. A
+#'   JuliaConnectoR server that is already running, for instance one
+#'   another package started, keeps its Julia: the project is then
+#'   instantiated under the matched version but loaded in the running one.
 #' @param verbose If `TRUE`, print progress messages.
 #' @return Invisibly `TRUE`.
 #' @export
@@ -50,10 +61,14 @@ julia_ready <- function(
   state_env = new.env(parent = emptyenv()),
   install = TRUE,
   project = NULL,
+  match_manifest = TRUE,
   verbose = TRUE
 ) {
   if (isTRUE(state_env$ready)) return(invisible(TRUE))
 
+  if (!is.null(project) && isTRUE(match_manifest)) {
+    match_manifest_julia(project, verbose)
+  }
   bin <- check_julia_bin(julia_bin())
   if (is.null(project)) {
     install_julia_packages(packages, github, bin, install, verbose)
@@ -62,10 +77,13 @@ julia_ready <- function(
   }
 
   # Tell JuliaConnectoR which Julia binary to use, then load packages.
-  Sys.setenv(JULIACONNECTOR_JULIABIN = bin)
+  # A user-chosen binary is already set. Recording it as juliaready's own
+  # would let a later setup override it.
+  if (!user_juliabin()) set_juliabin(bin)
   for (pkg in packages) {
     JuliaConnectoR::juliaEval(sprintf("using %s", pkg))
   }
+  mark_setup(state_env)
 
   state_env$ready <- TRUE
   invisible(TRUE)
@@ -91,7 +109,7 @@ instantiate_julia_project <- function(project, bin, verbose) {
 
 #' Install any missing packages into the default depot
 #'
-#' Each package is checked individually so only missing ones are added.
+#' Only the packages that fail to load are installed.
 #' @noRd
 install_julia_packages <- function(packages, github, bin, install, verbose) {
   missing_pkgs <- packages[!vapply(
@@ -117,7 +135,7 @@ install_julia_packages <- function(packages, github, bin, install, verbose) {
   julia_subprocess("import Pkg; Pkg.precompile()", bin = bin)
 }
 
-#' Build the Julia code to install a package, registry or GitHub.
+#' Build the Julia code that installs a package from the registry or GitHub
 #' @noRd
 .install_code <- function(pkg, github) {
   if (pkg %in% names(github)) {
@@ -141,4 +159,36 @@ install_julia_packages <- function(packages, github, bin, install, verbose) {
   } else {
     sprintf('import Pkg; Pkg.add("%s"); using %s', pkg, pkg)
   }
+}
+
+#' Record this setup in the Julia server
+#'
+#' When its connection has gone, JuliaConnectoR starts a fresh server.
+#' That server answers queries even without this setup's packages loaded.
+#' A token stored both in `state_env` and in `Main` identifies the server
+#' this setup ran in. `tempfile()` supplies the token
+#' because it leaves the user's random number stream alone.
+#' @noRd
+mark_setup <- function(state_env) {
+  state_env$setup <- basename(tempfile("setup"))
+  JuliaConnectoR::juliaEval(sprintf(
+    paste(
+      "isdefined(Main, :__juliaready_setups__) ||",
+      "(global __juliaready_setups__ = Set{String}());",
+      'push!(__juliaready_setups__, "%s"); nothing'
+    ),
+    state_env$setup
+  ))
+}
+
+#' Julia code that is `true` only in the server `state_env` was set up in
+#' @noRd
+setup_probe <- function(state_env) {
+  sprintf(
+    paste(
+      "isdefined(Main, :__juliaready_setups__) &&",
+      'in("%s", __juliaready_setups__)'
+    ),
+    state_env$setup
+  )
 }

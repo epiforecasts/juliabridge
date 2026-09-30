@@ -10,6 +10,7 @@ julia_ready(
   state_env = new.env(parent = emptyenv()),
   install = TRUE,
   project = NULL,
+  match_manifest = TRUE,
   verbose = TRUE
 )
 }
@@ -22,19 +23,31 @@ the General registry. Names must match entries in \code{packages}. Values
 may be a full URL, an \code{"owner/repo"} shorthand, or \code{"owner/repo:subdir"}.}
 
 \item{state_env}{An environment used to track initialisation state. The
-caller (typically a wrapping R package) supplies its own environment
-so multiple consuming packages do not interfere with each other.}
+caller (typically a wrapping R package) supplies its own environment.
+Several consuming packages then keep separate state.}
 
-\item{install}{If \code{FALSE}, fail rather than installing missing packages.}
+\item{install}{If \code{FALSE}, a missing package is an error.}
 
 \item{project}{Optional path to a Julia project directory containing a
 \code{Project.toml} (and ideally a \code{Manifest.toml}). When supplied, the
-project is activated and instantiated in a subprocess, and
-\code{JULIA_PROJECT} is set before starting JuliaConnectoR so that the
-server picks up the project. Use this when your package ships a
-pinned Julia environment under \verb{inst/julia/}. With \code{project} set,
-\code{packages} typically do not need to be installed individually —
-\code{Pkg.instantiate()} will fetch them from the project's manifest.}
+project is activated and instantiated in a subprocess. Setting
+\code{JULIA_PROJECT} before JuliaConnectoR starts makes the server use the
+project. Use this when your package ships a pinned Julia
+environment under \verb{inst/julia/}. \code{Pkg.instantiate()} fetches
+everything in the project's manifest; \code{packages} then only names the
+packages to load with \code{using}.}
+
+\item{match_manifest}{If \code{TRUE} and \code{project} is supplied, read the
+Julia version its \code{Manifest.toml} was resolved with and use that
+version, installing it with juliaup where available. Instantiating a
+manifest under a different Julia can fail, because it pins
+standard-library versions that exist only on the version that
+resolved it.
+Ignored when the user has chosen a binary through
+\code{JULIACONNECTOR_JULIABIN} or \code{JULIA_BINDIR}. A
+JuliaConnectoR server that is already running, for instance one
+another package started, keeps its Julia: the project is then
+instantiated under the matched version but loaded in the running one.}
 
 \item{verbose}{If \code{TRUE}, print progress messages.}
 }
@@ -48,14 +61,14 @@ callable from R via JuliaConnectoR:
 \details{
 \enumerate{
 \item Locates the Julia binary (see \code{\link[=julia_bin]{julia_bin()}}).
-\item For each required package, checks it loads in a Julia subprocess.
-If a package is missing and \code{install = TRUE}, installs it (from a
-GitHub URL if listed in \code{github}, otherwise from the General
-registry). Subprocess work avoids any interaction with the running
-JuliaConnectoR server.
+\item Without \code{project}, checks in a Julia subprocess that each required
+package loads. If a package is missing and \code{install = TRUE}, installs
+it (from a GitHub URL if listed in \code{github}, otherwise from the
+General registry). With \code{project}, instantiates that project instead.
+Both run in a subprocess, apart from the JuliaConnectoR server.
 \item Starts (or attaches to) the JuliaConnectoR server.
-\item Loads each package via \code{juliaEval("using <pkg>")}, so dotted
-constructor names like \code{EpiBranch.NegBin} resolve correctly.
+\item Loads each package with \code{juliaEval("using <pkg>")}. Dotted
+constructor names such as \code{EpiBranch.NegBin} then resolve.
 }
 
 Idempotent: if \code{state_env$ready} is already \code{TRUE}, returns immediately.

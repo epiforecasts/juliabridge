@@ -17,6 +17,6 @@ reasonable.
 }
 \description{
 The function name may be module-qualified (e.g. \code{"Distributions.mean"}).
-Module qualification is recommended after \code{using} so that constructor
-names resolve unambiguously.
+Qualifying the name after \code{using} makes constructor names resolve
+unambiguously.
 }

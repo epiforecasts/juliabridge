@@ -8,7 +8,7 @@
 #'   1. `JULIACONNECTOR_JULIABIN` env var (JuliaConnectoR's preferred
 #'      mechanism).
 #'   2. `JULIA_BINDIR` env var (Julia's own; `joinpath(JULIA_BINDIR, "julia")`).
-#'   3. `Sys.which("julia")` — fallback to PATH.
+#'   3. The `julia` on the `PATH` (`Sys.which("julia")`).
 #'
 #' @return Absolute path to the Julia executable, or `""` if not found.
 #' @export
@@ -16,21 +16,31 @@ julia_bin <- function() {
   override <- Sys.getenv("JULIACONNECTOR_JULIABIN", unset = "")
   if (nzchar(override) && file.exists(override)) return(override)
 
-  bindir <- Sys.getenv("JULIA_BINDIR", unset = "")
-  if (nzchar(bindir)) {
-    exe <- if (.Platform$OS.type == "windows") "julia.exe" else "julia"
-    bin <- file.path(bindir, exe)
-    if (file.exists(bin)) return(bin)
-  }
+  bin <- bindir_julia()
+  if (nzchar(bin)) return(bin)
   Sys.which("julia")
 }
 
+#' The Julia executable in `JULIA_BINDIR`, or `""` if there is none
+#' @noRd
+bindir_julia <- function() {
+  bindir <- Sys.getenv("JULIA_BINDIR", unset = "")
+  if (!nzchar(bindir)) return("")
+  exe <- if (.Platform$OS.type == "windows") "julia.exe" else "julia"
+  bin <- file.path(bindir, exe)
+  if (file.exists(bin)) bin else ""
+}
+
+# R may set these library paths to its own libraries. Julia must not see them.
+lib_path_vars <- c(
+  "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH"
+)
+
 #' Run a Julia command in a subprocess
 #'
-#' Launches a fresh `julia` process for one-shot work such as `Pkg.add`
-#' or `Pkg.precompile`. This is *not* the JuliaConnectoR server — it's a
-#' transient process for installation work that runs before the server
-#' is started.
+#' Launches a short-lived `julia` process, separate from the
+#' JuliaConnectoR server, for installation work such as `Pkg.add` or
+#' `Pkg.precompile` that runs before the server starts.
 #'
 #' Strips library-path env vars that R may set (`LD_LIBRARY_PATH`,
 #' `DYLD_LIBRARY_PATH`, `DYLD_FALLBACK_LIBRARY_PATH`), because those
@@ -47,7 +57,7 @@ julia_bin <- function() {
 julia_subprocess <- function(code, check = TRUE, bin = julia_bin()) {
   check_julia_bin(bin)
   res <- with_unset_env(
-    c("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH"),
+    lib_path_vars,
     suppressWarnings(system2(
       bin,
       args = c("--startup-file=no", "-e", shQuote(code)),

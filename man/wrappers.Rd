@@ -4,7 +4,7 @@
 \alias{wrappers}
 \title{Backend-agnostic wrappers around Julia eval / call / import}
 \description{
-These thin wrappers exist so consumer packages can call into Julia
-without directly depending on JuliaConnectoR. If \code{juliaready} ever
-switches backend, consumer code keeps working.
+These thin wrappers let consumer packages call into Julia through
+juliaready alone. If \code{juliaready} ever switches backend, consumer code
+keeps working.
 }
