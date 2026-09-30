@@ -34,7 +34,7 @@
 #' component("Normal", 0, 1, role = "prior")
 #'
 #' # Keyword arguments, and a component nested inside another
-#' component("Renewal", generation_time = component("Gamma", 6.5, 0.62))
+#' component("Truncated", component("Normal", 0, 1), lower = 0)
 #' @export
 component <- function(fn, ..., role = NULL) {
   .assert_name(fn, "fn")
@@ -90,7 +90,7 @@ component <- function(fn, ..., role = NULL) {
 #'
 #' @examples
 #' # A Julia function, which has no R equivalent to render
-#' component("DirectInfections", transformation = julia("identity"))
+#' component("Sampler", transform = julia("identity"))
 #' @export
 julia <- function(code, role = NULL) {
   if (!is.character(code) || length(code) != 1 || is.na(code) ||
@@ -123,7 +123,7 @@ julia <- function(code, role = NULL) {
 #' # A keyword name outside ASCII travels as an escape, so the code is ASCII
 #' greek <- list(1)
 #' names(greek) <- "\u03f5_t"
-#' as_julia(do.call(component, c("AR", greek)), ascii = TRUE)
+#' as_julia(do.call(component, c("Process", greek)), ascii = TRUE)
 #' @export
 as_julia <- function(x, ascii = FALSE) {
   .render(x, ascii = ascii)

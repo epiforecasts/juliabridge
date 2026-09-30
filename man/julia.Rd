@@ -22,5 +22,5 @@ objects from other Julia packages.
 }
 \examples{
 # A Julia function, which has no R equivalent to render
-component("DirectInfections", transformation = julia("identity"))
+component("Sampler", transform = julia("identity"))
 }

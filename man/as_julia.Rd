@@ -26,5 +26,5 @@ as_julia(component("Gamma", 6.5, 0.62))
 # A keyword name outside ASCII travels as an escape, so the code is ASCII
 greek <- list(1)
 names(greek) <- "\u03f5_t"
-as_julia(do.call(component, c("AR", greek)), ascii = TRUE)
+as_julia(do.call(component, c("Process", greek)), ascii = TRUE)
 }

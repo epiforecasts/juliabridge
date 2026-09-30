@@ -59,11 +59,11 @@ test_that("arguments Julia could not read are refused", {
 test_that("non-ASCII keyword names are escaped only in ASCII mode", {
   eps <- list(1)
   names(eps) <- "\u03f5_t"
-  comp <- do.call(component, c("AR", eps))
-  expect_identical(as_julia(comp), "AR(; \u03f5_t = 1.0)")
+  comp <- do.call(component, c("Process", eps))
+  expect_identical(as_julia(comp), "Process(; \u03f5_t = 1.0)")
   expect_identical(
     as_julia(comp, ascii = TRUE),
-    "AR(; (Symbol(\"\\u03f5_t\") => 1.0,)...)"
+    "Process(; (Symbol(\"\\u03f5_t\") => 1.0,)...)"
   )
 })
 
@@ -98,9 +98,12 @@ test_that("an untyped julia() expression satisfies any role", {
 
 test_that("printing breaks a long component over lines", {
   nested <- component(
-    "Renewal",
-    generation_time = component("Gamma", 6.5, 0.62),
-    rt = component("AR", damp = list(0.8, 0.1), init = component("Normal")),
+    "Mixture",
+    weights = component("Dirichlet", list(1, 1)),
+    parts = list(
+      component("Normal", 0, 1),
+      component("Gamma", 6.5, 0.62)
+    ),
     role = "model"
   )
   lines <- .format_code(nested)

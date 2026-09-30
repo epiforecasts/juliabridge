@@ -42,5 +42,5 @@ the arguments that follow.
 component("Normal", 0, 1, role = "prior")
 
 # Keyword arguments, and a component nested inside another
-component("Renewal", generation_time = component("Gamma", 6.5, 0.62))
+component("Truncated", component("Normal", 0, 1), lower = 0)
 }
