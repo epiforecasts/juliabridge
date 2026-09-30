@@ -80,7 +80,7 @@ one-time setup (typically calling <code><a href="julia_ready.html">julia_ready()
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="va">my_function</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu">ensure_julia</span><span class="op">(</span><span class="va">.my_pkg_env</span>, <span class="va">setup_my_pkg</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu">JuliaCall</span><span class="fu">::</span><span class="fu">julia_call</span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="call_julia.html">call_julia</a></span><span class="op">(</span><span class="st">"MyJuliaPkg.do_something"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>

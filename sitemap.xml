@@ -13,9 +13,15 @@
 <url><loc>https://epiforecasts.io/juliaready/reference/get_julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliaready/reference/import_julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliaready/reference/index.html</loc></url>
+<url><loc>https://epiforecasts.io/juliaready/reference/julia_alive.html</loc></url>
 <url><loc>https://epiforecasts.io/juliaready/reference/julia_bin.html</loc></url>
+<url><loc>https://epiforecasts.io/juliaready/reference/julia_handle.html</loc></url>
+<url><loc>https://epiforecasts.io/juliaready/reference/julia_handle_owned.html</loc></url>
 <url><loc>https://epiforecasts.io/juliaready/reference/julia_load_bridge.html</loc></url>
 <url><loc>https://epiforecasts.io/juliaready/reference/julia_ready.html</loc></url>
+<url><loc>https://epiforecasts.io/juliaready/reference/julia_release_pending.html</loc></url>
+<url><loc>https://epiforecasts.io/juliaready/reference/juliaup_julia.html</loc></url>
+<url><loc>https://epiforecasts.io/juliaready/reference/manifest_julia_version.html</loc></url>
 <url><loc>https://epiforecasts.io/juliaready/reference/wrappers.html</loc></url>
 </urlset>
 

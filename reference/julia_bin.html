@@ -57,7 +57,7 @@ starting the JuliaConnectoR server.</p>
     <p>Detection order:</p><ol><li><p><code>JULIACONNECTOR_JULIABIN</code> env var (JuliaConnectoR's preferred
 mechanism).</p></li>
 <li><p><code>JULIA_BINDIR</code> env var (Julia's own; <code>joinpath(JULIA_BINDIR, "julia")</code>).</p></li>
-<li><p><code>Sys.which("julia")</code> — fallback to PATH.</p></li>
+<li><p>The <code>julia</code> on the <code>PATH</code> (<code>Sys.which("julia")</code>).</p></li>
 </ol></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

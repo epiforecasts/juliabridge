@@ -48,6 +48,7 @@ callable from R via JuliaConnectoR:</p>
 <span>  state_env <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></span><span class="op">(</span>parent <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">emptyenv</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  install <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  project <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  match_manifest <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -69,23 +70,37 @@ may be a full URL, an <code>"owner/repo"</code> shorthand, or <code>"owner/repo:
 
 <dt id="arg-state-env">state_env<a class="anchor" aria-label="anchor" href="#arg-state-env"></a></dt>
 <dd><p>An environment used to track initialisation state. The
-caller (typically a wrapping R package) supplies its own environment
-so multiple consuming packages do not interfere with each other.</p></dd>
+caller (typically a wrapping R package) supplies its own environment.
+Several consuming packages then keep separate state.</p></dd>
 
 
 <dt id="arg-install">install<a class="anchor" aria-label="anchor" href="#arg-install"></a></dt>
-<dd><p>If <code>FALSE</code>, fail rather than installing missing packages.</p></dd>
+<dd><p>If <code>FALSE</code>, a missing package is an error.</p></dd>
 
 
 <dt id="arg-project">project<a class="anchor" aria-label="anchor" href="#arg-project"></a></dt>
 <dd><p>Optional path to a Julia project directory containing a
 <code>Project.toml</code> (and ideally a <code>Manifest.toml</code>). When supplied, the
-project is activated and instantiated in a subprocess, and
-<code>JULIA_PROJECT</code> is set before starting JuliaConnectoR so that the
-server picks up the project. Use this when your package ships a
-pinned Julia environment under <code>inst/julia/</code>. With <code>project</code> set,
-<code>packages</code> typically do not need to be installed individually —
-<code>Pkg.instantiate()</code> will fetch them from the project's manifest.</p></dd>
+project is activated and instantiated in a subprocess. Setting
+<code>JULIA_PROJECT</code> before JuliaConnectoR starts makes the server use the
+project. Use this when your package ships a pinned Julia
+environment under <code>inst/julia/</code>. <code>Pkg.instantiate()</code> fetches
+everything in the project's manifest; <code>packages</code> then only names the
+packages to load with <code>using</code>.</p></dd>
+
+
+<dt id="arg-match-manifest">match_manifest<a class="anchor" aria-label="anchor" href="#arg-match-manifest"></a></dt>
+<dd><p>If <code>TRUE</code> and <code>project</code> is supplied, read the
+Julia version its <code>Manifest.toml</code> was resolved with and use that
+version, installing it with juliaup where available. Instantiating a
+manifest under a different Julia can fail, because it pins
+standard-library versions that exist only on the version that
+resolved it.
+Ignored when the user has chosen a binary through
+<code>JULIACONNECTOR_JULIABIN</code> or <code>JULIA_BINDIR</code>. A
+JuliaConnectoR server that is already running, for instance one
+another package started, keeps its Julia: the project is then
+instantiated under the matched version but loaded in the running one.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -100,14 +115,14 @@ pinned Julia environment under <code>inst/julia/</code>. With <code>project</cod
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
 
 <ol><li><p>Locates the Julia binary (see <code><a href="julia_bin.html">julia_bin()</a></code>).</p></li>
-<li><p>For each required package, checks it loads in a Julia subprocess.
-If a package is missing and <code>install = TRUE</code>, installs it (from a
-GitHub URL if listed in <code>github</code>, otherwise from the General
-registry). Subprocess work avoids any interaction with the running
-JuliaConnectoR server.</p></li>
+<li><p>Without <code>project</code>, checks in a Julia subprocess that each required
+package loads. If a package is missing and <code>install = TRUE</code>, installs
+it (from a GitHub URL if listed in <code>github</code>, otherwise from the
+General registry). With <code>project</code>, instantiates that project instead.
+Both run in a subprocess, apart from the JuliaConnectoR server.</p></li>
 <li><p>Starts (or attaches to) the JuliaConnectoR server.</p></li>
-<li><p>Loads each package via <code>juliaEval("using &lt;pkg&gt;")</code>, so dotted
-constructor names like <code>EpiBranch.NegBin</code> resolve correctly.</p></li>
+<li><p>Loads each package with <code>juliaEval("using &lt;pkg&gt;")</code>. Dotted
+constructor names such as <code>EpiBranch.NegBin</code> then resolve.</p></li>
 </ol><p>Idempotent: if <code>state_env$ready</code> is already <code>TRUE</code>, returns immediately.</p>
     </div>
 

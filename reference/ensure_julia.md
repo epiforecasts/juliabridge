@@ -43,7 +43,7 @@ setup_my_pkg <- function() {
 }
 my_function <- function() {
   ensure_julia(.my_pkg_env, setup_my_pkg)
-  JuliaCall::julia_call("...")
+  call_julia("MyJuliaPkg.do_something")
 }
 } # }
 ```

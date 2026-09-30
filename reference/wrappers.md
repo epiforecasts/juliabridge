@@ -1,5 +1,5 @@
 # Backend-agnostic wrappers around Julia eval / call / import
 
-These thin wrappers exist so consumer packages can call into Julia
-without directly depending on JuliaConnectoR. If `juliaready` ever
-switches backend, consumer code keeps working.
+These thin wrappers let consumer packages call into Julia through
+juliaready alone. If `juliaready` ever switches backend, consumer code
+keeps working.

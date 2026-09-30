@@ -24,4 +24,4 @@ Detection order:
 2.  `JULIA_BINDIR` env var (Julia's own;
     `joinpath(JULIA_BINDIR, "julia")`).
 
-3.  `Sys.which("julia")` — fallback to PATH.
+3.  The `julia` on the `PATH` (`Sys.which("julia")`).

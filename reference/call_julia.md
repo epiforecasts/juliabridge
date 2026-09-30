@@ -1,8 +1,8 @@
 # Call a Julia function by (qualified) name
 
 The function name may be module-qualified (e.g. `"Distributions.mean"`).
-Module qualification is recommended after `using` so that constructor
-names resolve unambiguously.
+Qualifying the name after `using` makes constructor names resolve
+unambiguously.
 
 ## Usage
 
