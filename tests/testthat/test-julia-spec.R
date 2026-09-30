@@ -180,6 +180,26 @@ test_that("a broken-up print agrees with the rendered code", {
   expect_gt(nchar(as_julia(wrapped)), 78)
   lines <- .format_code(wrapped)
   expect_gt(length(lines), 1)
-  expect_true(any(grepl("AVeryLongConstructorName", lines)))
+  expect_true(any(grepl("AVeryLongConstructorName", lines, fixed = TRUE)))
   expect_false(any(grepl("^\\s*\\[", lines)))
+})
+
+test_that("a matrix keeps its shape", {
+  # R and Julia both store column-major, so the elements travel as they are
+  # and reshape restores the shape. Julia reads this back as a Matrix.
+  expect_identical(
+    .render(matrix(1:4, nrow = 2)), "reshape([1, 2, 3, 4], (2, 2))"
+  )
+  expect_identical(
+    .render(array(1:8, c(2, 2, 2))),
+    "reshape([1, 2, 3, 4, 5, 6, 7, 8], (2, 2, 2))"
+  )
+  expect_identical(.render(c(1, 2)), "[1.0, 2.0]")
+})
+
+test_that("names that Julia would drop are refused rather than dropped", {
+  expect_error(.render(c(alpha = 1, beta = 2)), "Named vectors")
+  expect_error(.render(list(alpha = 1)), "Named lists")
+  expect_error(.render(list()), "empty")
+  expect_error(.render(numeric()), "empty")
 })

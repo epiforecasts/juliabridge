@@ -156,6 +156,9 @@ as_julia <- function(x, ascii = FALSE) {
     if (!is.null(names(x)) && any(nzchar(names(x)))) {
       stop("Named lists cannot be rendered as Julia values.", call. = FALSE)
     }
+    if (length(x) == 0) {
+      stop("Cannot render an empty value as Julia code.", call. = FALSE)
+    }
     return(.render_vector(vapply(x, .render, character(1), ascii = ascii)))
   }
   .render_atomic(x)
@@ -170,6 +173,14 @@ as_julia <- function(x, ascii = FALSE) {
   if (length(x) == 0) {
     stop("Cannot render an empty value as Julia code.", call. = FALSE)
   }
+  if (!is.null(names(x))) {
+    stop(
+      "Named vectors cannot be rendered as Julia values, since Julia reads ",
+      "them as a plain vector and the names would be lost. Drop the names, ",
+      "or pass the pieces separately.",
+      call. = FALSE
+    )
+  }
   scalars <- if (is.logical(x)) {
     vapply(x, .render_logical, character(1), USE.NAMES = FALSE)
   } else if (is.integer(x)) {
@@ -183,6 +194,13 @@ as_julia <- function(x, ascii = FALSE) {
       "Cannot render an object of class '", class(x)[1], "' as Julia code.",
       call. = FALSE
     )
+  }
+  if (!is.null(dim(x))) {
+    # R stores an array column-major, as Julia does, so the elements go
+    # across as they are and `reshape` restores the shape.
+    return(paste0(
+      "reshape(", .render_vector(scalars), ", (", toString(dim(x)), "))"
+    ))
   }
   if (length(scalars) == 1) scalars else .render_vector(scalars)
 }
@@ -353,16 +371,40 @@ as_julia_value.default <- function(x, ...) {
   pad <- strrep("    ", indent)
   flat <- .render(x, ascii = FALSE)
   is_vector <- is.list(x) && !inherits(x, "julia_component")
-  breakable <- is_vector || inherits(x, "julia_component")
-  if (nchar(pad) + nchar(flat) <= width || inherits(x, "julia_code") ||
-      !breakable) {
+  if (.fits(pad, flat, width, x, is_vector)) {
     return(paste0(pad, flat))
   }
   if (is_vector) {
-    elements <- lapply(x, .format_code, width = width, indent = indent + 1L)
-    return(c(paste0(pad, "["), .join_lines(elements), paste0(pad, "]")))
+    return(.format_vector(x, width, indent, pad))
   }
   .format_call(x, width, indent, pad)
+}
+
+#' Does a value belong on one line?
+#'
+#' Either because it fits, or because there is nothing to break it into:
+#' verbatim Julia code and plain values render as they are.
+#'
+#' @inheritParams .format_code
+#' @param pad The indentation of the value.
+#' @param flat The value rendered on one line.
+#' @param is_vector Whether the value renders as a Julia vector.
+#' @return `TRUE` when the value goes on one line.
+#' @noRd
+.fits <- function(pad, flat, width, x, is_vector) {
+  breakable <- is_vector || inherits(x, "julia_component")
+  nchar(pad) + nchar(flat) <= width || inherits(x, "julia_code") || !breakable
+}
+
+#' Format a vector over several lines
+#'
+#' @inheritParams .format_code
+#' @param pad The indentation of the vector itself.
+#' @return Character vector of lines.
+#' @noRd
+.format_vector <- function(x, width, indent, pad) {
+  elements <- lapply(x, .format_code, width = width, indent = indent + 1L)
+  c(paste0(pad, "["), .join_lines(elements), paste0(pad, "]"))
 }
 
 #' Format a component call over several lines
