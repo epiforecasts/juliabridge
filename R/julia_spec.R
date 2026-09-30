@@ -94,7 +94,9 @@ component <- function(.fn, ..., role = NULL) {
 #'   is accepted wherever a component is expected.
 #'
 #' @return An object of class `julia_code`, which is also a
-#'   `julia_component`.
+#'   `julia_component` and holds the code in `$code`. It has no `$fn`,
+#'   `$args` or `$kwargs`, so a package walking a call branches on
+#'   `inherits(x, "julia_code")` first.
 #'
 #' @examples
 #' # A Julia function, which has no R equivalent to render
@@ -181,7 +183,12 @@ as_julia <- function(x, ascii = FALSE) {
   if (length(x) == 0) {
     stop("Cannot render an empty value as Julia code.", call. = FALSE)
   }
-  if (!is.null(names(x)) || !is.null(dimnames(x))) {
+  # R keeps an all-NULL `dimnames` on a matrix that carries no names, which
+  # is what stripping names with `rownames(x) <- NULL` leaves behind.
+  axis_names <- dimnames(x)
+  labelled <- !is.null(axis_names) &&
+    !all(vapply(axis_names, is.null, logical(1)))
+  if (!is.null(names(x)) || labelled) {
     stop(
       "Named vectors and arrays cannot be rendered as Julia values, since ",
       "Julia reads them as a plain vector or array and the names would be ",
@@ -567,8 +574,8 @@ assert_role <- function(
 }
 
 #' @export
-format.julia_component <- function(x, ...) {
-  .format_code(x)
+format.julia_component <- function(x, width = 78L, ...) {
+  .format_code(x, width = width)
 }
 
 #' @export
@@ -580,6 +587,8 @@ print.julia_component <- function(x, ...) {
     paste(role, "component")
   )
   cat("<julia ", label, ">\n", sep = "")
-  cat(.format_code(x), sep = "\n")
+  # Through `format()`, so that a package registering a method for its own
+  # role class sees it used here too.
+  cat(format(x, ...), sep = "\n")
   invisible(x)
 }

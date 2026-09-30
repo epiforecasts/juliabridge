@@ -47,6 +47,10 @@ test_that("components render positional and keyword arguments", {
     as_julia(component("F", component("G"), h = component("H"))),
     "F(G(); h = H())"
   )
+  # The first formal is `.fn`, so a Julia keyword named `f` or `fn` reaches
+  # the call rather than being taken for the constructor name.
+  expect_identical(as_julia(component("F", f = "Bar")), "F(; f = \"Bar\")")
+  expect_identical(as_julia(component("F", fn = 2L)), "F(; fn = 2)")
 })
 
 test_that("arguments Julia could not read are refused", {
@@ -212,6 +216,15 @@ test_that("a matrix keeps its shape", {
     .render(matrix(1:4, 2, 2, dimnames = list(c("a", "b"), c("x", "y")))),
     "Named vectors and arrays"
   )
+  expect_error(
+    .render(matrix(1:4, 2, 2, dimnames = list(c("a", "b"), NULL))),
+    "Named vectors and arrays"
+  )
+  # An all-NULL dimnames carries no names: this is what stripping them leaves
+  labelled <- matrix(1:4, 2, 2, dimnames = list(c("a", "b"), c("x", "y")))
+  rownames(labelled) <- NULL
+  colnames(labelled) <- NULL
+  expect_identical(.render(labelled), "reshape([1, 2, 3, 4], (2, 2))")
   # R and Julia both store column-major, so the elements travel as they are
   # and reshape restores the shape. Julia reads this back as a Matrix.
   expect_identical(

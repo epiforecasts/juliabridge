@@ -14,7 +14,9 @@ is accepted wherever a component is expected.}
 }
 \value{
 An object of class \code{julia_code}, which is also a
-\code{julia_component}.
+\code{julia_component} and holds the code in \verb{$code}. It has no \verb{$fn},
+\verb{$args} or \verb{$kwargs}, so a package walking a call branches on
+\code{inherits(x, "julia_code")} first.
 }
 \description{
 Marks a string as Julia source to be inserted verbatim when a component is
