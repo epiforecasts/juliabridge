@@ -155,3 +155,26 @@ test_that("a component with no role is accepted wherever one is expected", {
     "must be a model component"
   )
 })
+
+test_that("a broken-up print agrees with the rendered code", {
+  registerS3method(
+    "as_julia_value", "long_spec",
+    function(x, ...) {
+      component(
+        "AVeryLongConstructorNameIndeedTrulyEnormousAndThenSomeMore",
+        x$a, x$b, x$c, x$d, x$e
+      )
+    }
+  )
+  spec <- structure(
+    list(a = 1, b = 2, c = 3, d = 4, e = 5), class = "long_spec"
+  )
+  wrapped <- component("F", spec)
+  # Long enough to be broken over lines, which is where reading the structure
+  # underneath the class, rather than asking it, would show through.
+  expect_gt(nchar(as_julia(wrapped)), 78)
+  lines <- .format_code(wrapped)
+  expect_gt(length(lines), 1)
+  expect_true(any(grepl("AVeryLongConstructorName", lines)))
+  expect_false(any(grepl("^\\s*\\[", lines)))
+})

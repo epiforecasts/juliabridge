@@ -344,6 +344,12 @@ as_julia_value.default <- function(x, ...) {
 #' @return Character vector of lines.
 #' @noRd
 .format_code <- function(x, width = 78L, indent = 0L) {
+  # As in `.render()`: a consumer's class is asked how it renders before the
+  # structure underneath it is read, so a broken-up print agrees with the
+  # code that would be sent to Julia.
+  if (!inherits(x, "julia_component") && !is.null(attr(x, "class"))) {
+    return(.format_code(as_julia_value(x), width = width, indent = indent))
+  }
   pad <- strrep("    ", indent)
   flat <- .render(x, ascii = FALSE)
   is_vector <- is.list(x) && !inherits(x, "julia_component")
