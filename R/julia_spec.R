@@ -134,7 +134,7 @@ as_julia <- function(x, ascii = FALSE) {
 #' @param x An R value or component.
 #' @param ascii Logical. See [as_julia()].
 #' @return A character string of Julia code.
-#' @keywords internal
+#' @noRd
 .render <- function(x, ascii = TRUE) {
   if (inherits(x, "julia_code")) {
     return(x$code)
@@ -165,7 +165,7 @@ as_julia <- function(x, ascii = FALSE) {
 #'
 #' @param x An atomic vector.
 #' @return A character string of Julia code.
-#' @keywords internal
+#' @noRd
 .render_atomic <- function(x) {
   if (length(x) == 0) {
     stop("Cannot render an empty value as Julia code.", call. = FALSE)
@@ -191,7 +191,7 @@ as_julia <- function(x, ascii = FALSE) {
 #'
 #' @param x A logical scalar.
 #' @return A character string.
-#' @keywords internal
+#' @noRd
 .render_logical <- function(x) {
   if (is.na(x)) {
     return("missing")
@@ -203,7 +203,7 @@ as_julia <- function(x, ascii = FALSE) {
 #'
 #' @param x An integer scalar.
 #' @return A character string.
-#' @keywords internal
+#' @noRd
 .render_integer <- function(x) {
   if (is.na(x)) "missing" else as.character(x)
 }
@@ -243,7 +243,7 @@ as_julia_value.default <- function(x, ...) {
 #' @param args Character vector of rendered positional arguments.
 #' @param kwargs Character vector of rendered keyword arguments.
 #' @return A character string.
-#' @keywords internal
+#' @noRd
 .render_call <- function(fn, args, kwargs) {
   inner <- toString(args)
   if (length(kwargs) > 0) {
@@ -256,7 +256,7 @@ as_julia_value.default <- function(x, ...) {
 #'
 #' @param elements Character vector of rendered elements.
 #' @return A character string.
-#' @keywords internal
+#' @noRd
 .render_vector <- function(elements) {
   paste0("[", toString(elements), "]")
 }
@@ -270,7 +270,7 @@ as_julia_value.default <- function(x, ...) {
 #' @param kwargs Named list of R values.
 #' @param ascii Logical. See [as_julia()].
 #' @return Character vector of rendered keyword arguments.
-#' @keywords internal
+#' @noRd
 .render_kwargs <- function(kwargs, ascii) {
   if (length(kwargs) == 0) {
     return(character())
@@ -290,7 +290,7 @@ as_julia_value.default <- function(x, ...) {
 #'
 #' @param x A numeric scalar.
 #' @return A character string.
-#' @keywords internal
+#' @noRd
 .render_float <- function(x) {
   if (is.nan(x)) {
     return("NaN")
@@ -311,7 +311,7 @@ as_julia_value.default <- function(x, ...) {
 #'
 #' @param x A character scalar.
 #' @return A character string.
-#' @keywords internal
+#' @noRd
 .render_string <- function(x) {
   codes <- utf8ToInt(enc2utf8(x))
   if (anyNA(codes)) {
@@ -342,7 +342,7 @@ as_julia_value.default <- function(x, ...) {
 #' @param width Maximum line width.
 #' @param indent Current indentation level.
 #' @return Character vector of lines.
-#' @keywords internal
+#' @noRd
 .format_code <- function(x, width = 78L, indent = 0L) {
   pad <- strrep("    ", indent)
   flat <- .render(x, ascii = FALSE)
@@ -364,7 +364,7 @@ as_julia_value.default <- function(x, ...) {
 #' @inheritParams .format_code
 #' @param pad The indentation of the call itself.
 #' @return Character vector of lines.
-#' @keywords internal
+#' @noRd
 .format_call <- function(x, width, indent, pad) {
   inner_pad <- strrep("    ", indent + 1L)
   positional <- lapply(
@@ -389,7 +389,7 @@ as_julia_value.default <- function(x, ...) {
 #' @param pieces List of character vectors, one per argument.
 #' @param last_sep Separator after the final argument.
 #' @return Character vector of lines.
-#' @keywords internal
+#' @noRd
 .join_lines <- function(pieces, last_sep = "") {
   unlist(lapply(seq_along(pieces), function(i) {
     formatted <- pieces[[i]]
@@ -446,7 +446,7 @@ assert_role <- function(
 #' @param role The role name.
 #' @param labels Named character vector of descriptions, or `NULL`.
 #' @return A character string.
-#' @keywords internal
+#' @noRd
 .role_label <- function(role, labels) {
   if (!is.null(labels) && role %in% names(labels)) {
     return(labels[[role]])
@@ -480,7 +480,7 @@ assert_role <- function(
 #' @param x The name to check.
 #' @param arg_name Name used in error messages.
 #' @return Invisibly `TRUE`.
-#' @keywords internal
+#' @noRd
 .assert_name <- function(x, arg_name) {
   if (!is.character(x) || length(x) != 1 || is.na(x) ||
       !grepl("^[A-Za-z_][A-Za-z0-9_.!]*$", x)) {
