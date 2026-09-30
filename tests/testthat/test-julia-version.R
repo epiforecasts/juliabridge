@@ -204,7 +204,7 @@ test_that("match_manifest_julia reports the Julia it selects", {
   project <- withr::local_tempdir()
   writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
   withr::local_envvar(JULIACONNECTOR_JULIABIN = NA, JULIA_BINDIR = NA)
-  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  withr::defer(assign("juliabin", NULL, envir = .juliabridge_state))
   matched <- file.path("", "matched", "julia")
   local_mocked_bindings(juliaup_julia = function(...) matched)
   expect_message(

@@ -1,7 +1,7 @@
 test_that("a missing bridge file is reported with its package", {
   expect_error(
-    julia_load_bridge("juliaready", "no-such-bridge.jl"),
-    "Bridge file not found: .*no-such-bridge.jl in package 'juliaready'"
+    julia_load_bridge("juliabridge", "no-such-bridge.jl"),
+    "Bridge file not found: .*no-such-bridge.jl in package 'juliabridge'"
   )
 })
 
@@ -16,7 +16,7 @@ test_that("bridge files are evaluated in the Julia session", {
   writeLines("", file.path(src, "NAMESPACE"))
   dir.create(file.path(src, "inst", "julia"), recursive = TRUE)
   writeLines(
-    "juliaready_bridge_test(x) = 2x",
+    "juliabridge_bridge_test(x) = 2x",
     file.path(src, "inst", "julia", "double.jl")
   )
   lib <- withr::local_tempdir()
@@ -32,5 +32,5 @@ test_that("bridge files are evaluated in the Julia session", {
     julia_load_bridge("bridgetest", "double.jl", verbose = TRUE),
     "Loading Julia bridge: double.jl"
   )
-  expect_identical(call_julia("juliaready_bridge_test", 21L), 42L)
+  expect_identical(call_julia("juliabridge_bridge_test", 21L), 42L)
 })
