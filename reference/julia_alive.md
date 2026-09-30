@@ -1,6 +1,6 @@
 # Is the Julia session still usable?
 
-[`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
+[`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md)
 records that setup has run and returns immediately when called again.
 That leaves a session stuck once its Julia process goes away, whether it
 was stopped, interrupted or died: the packages are no longer loaded,
@@ -17,7 +17,7 @@ julia_alive(state_env, probe = NULL)
 - state_env:
 
   The environment given to
-  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md).
+  [`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md).
 
 - probe:
 
@@ -34,14 +34,14 @@ julia_alive(state_env, probe = NULL)
 
 This checks the running session and clears the flag when the check
 fails. The next
-[`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
+[`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md)
 call then sets Julia up again. The environment itself is kept, because
 callers may use its identity.
 
 The check itself may start Julia, because JuliaConnectoR starts a new
 server whenever its connection has gone. The default probe is `FALSE` in
 such a server: only the server
-[`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
+[`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md)
 ran in holds the token it recorded.
 
 ## Examples

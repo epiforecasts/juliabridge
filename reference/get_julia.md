@@ -1,8 +1,8 @@
 # Fully translate a Julia value into R
 
-[`eval_julia()`](https://epiforecasts.io/juliaready/reference/eval_julia.md)
+[`eval_julia()`](https://epiforecasts.io/juliabridge/reference/eval_julia.md)
 and
-[`call_julia()`](https://epiforecasts.io/juliaready/reference/call_julia.md)
+[`call_julia()`](https://epiforecasts.io/juliabridge/reference/call_julia.md)
 return composite Julia values (structs, Tuples, NamedTuples, Dicts) as
 proxy objects that reference the value inside the Julia session. This
 function translates such a proxy into a plain R object, e.g. a

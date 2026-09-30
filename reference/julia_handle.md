@@ -25,7 +25,7 @@ julia_handle(handle, session, state_env)
 - state_env:
 
   The environment given to
-  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md).
+  [`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md).
 
 ## Value
 
@@ -43,7 +43,7 @@ compare tokens before acting.
 Saving an R object copies the environment by value but not its
 finaliser. A reloaded object then points at a Julia object it does not
 own.
-[`julia_handle_owned()`](https://epiforecasts.io/juliaready/reference/julia_handle_owned.md)
+[`julia_handle_owned()`](https://epiforecasts.io/juliabridge/reference/julia_handle_owned.md)
 detects this by comparing the state environment recorded in the handle
 with the current one.
 

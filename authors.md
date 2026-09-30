@@ -8,15 +8,15 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/epiforecasts/juliaready/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/epiforecasts/juliabridge/blob/main/DESCRIPTION)
 
-Funk S (2026). *juliaready: Robust Julia Setup for R Packages*. R
-package version 0.1.0, <https://github.com/epiforecasts/juliaready>.
+Funk S (2026). *juliabridge: Bridge R Packages to Julia*. R package
+version 0.1.0, <https://github.com/epiforecasts/juliabridge>.
 
     @Manual{,
-      title = {juliaready: Robust Julia Setup for R Packages},
+      title = {juliabridge: Bridge R Packages to Julia},
       author = {Sebastian Funk},
       year = {2026},
       note = {R package version 0.1.0},
-      url = {https://github.com/epiforecasts/juliaready},
+      url = {https://github.com/epiforecasts/juliabridge},
     }

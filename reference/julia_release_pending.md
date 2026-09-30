@@ -15,7 +15,7 @@ julia_release_pending(state_env, release)
 - state_env:
 
   The environment given to
-  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md).
+  [`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md).
 
 - release:
 
@@ -34,7 +34,7 @@ setup are dropped too, because their objects went with the old Julia
 server. A release that fails stays queued for the next call, up to three
 attempts, after which it is dropped: a release that keeps failing
 usually means the server was replaced without
-[`julia_alive()`](https://epiforecasts.io/juliaready/reference/julia_alive.md)
+[`julia_alive()`](https://epiforecasts.io/juliabridge/reference/julia_alive.md)
 noticing.
 
 ## Examples

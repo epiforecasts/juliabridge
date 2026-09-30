@@ -1,9 +1,9 @@
-# juliaready
+# juliabridge
 
 Julia setup for R packages that wrap a Julia engine.
 
-`juliaready` collects the patterns you otherwise learn the hard way when
-building an R package that calls Julia:
+`juliabridge` collects the patterns you otherwise learn the hard way
+when building an R package that calls Julia:
 
 - which Julia binary to use when several are installed;
 - which Julia version a pinned project needs;
@@ -19,7 +19,7 @@ It is small and opinionated. In each consuming package it replaces about
 
 ## Backend
 
-juliaready runs Julia through
+juliabridge runs Julia through
 [JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), in a
 separate process from R. The main alternative,
 [JuliaCall](https://github.com/JuliaInterop/JuliaCall), embeds Julia in
@@ -39,10 +39,10 @@ that activity is platform-compatibility work. Its in-process linking
 problems cannot be fixed without changing its architecture.
 
 Consumer packages call
-[`juliaready::eval_julia()`](https://epiforecasts.io/juliaready/reference/eval_julia.md),
-[`call_julia()`](https://epiforecasts.io/juliaready/reference/call_julia.md)
+[`juliabridge::eval_julia()`](https://epiforecasts.io/juliabridge/reference/eval_julia.md),
+[`call_julia()`](https://epiforecasts.io/juliabridge/reference/call_julia.md)
 and
-[`import_julia()`](https://epiforecasts.io/juliaready/reference/import_julia.md)
+[`import_julia()`](https://epiforecasts.io/juliabridge/reference/import_julia.md)
 and never touch JuliaConnectoR directly. The choice of backend stays in
 one place.
 
@@ -51,7 +51,7 @@ one place.
 ``` r
 
 # install.packages("remotes")
-remotes::install_github("epiforecasts/juliaready")
+remotes::install_github("epiforecasts/juliabridge")
 ```
 
 You also need [Julia](https://julialang.org/) installed;
@@ -67,20 +67,20 @@ You also need [Julia](https://julialang.org/) installed;
 
 #' @export
 setup_mypkg <- function(install = TRUE) {
-  juliaready::julia_ready(
+  juliabridge::julia_ready(
     packages  = c("EpiBranch", "Distributions", "Random"),
     github    = c(EpiBranch = "epiforecasts/EpiBranch.jl"),
     state_env = .mypkg_env,
     install   = install
   )
-  juliaready::julia_load_bridge(
+  juliabridge::julia_load_bridge(
     package = "mypkg",
     files   = c("dist_lookup.jl", "simulate.jl")
   )
 }
 
 .ensure_julia <- function() {
-  juliaready::ensure_julia(.mypkg_env, setup_mypkg)
+  juliabridge::ensure_julia(.mypkg_env, setup_mypkg)
 }
 ```
 
@@ -90,13 +90,13 @@ Then in any function that touches Julia:
 
 my_function <- function(x) {
   .ensure_julia()
-  juliaready::call_julia("MyJuliaPkg.do_something", x)
+  juliabridge::call_julia("MyJuliaPkg.do_something", x)
 }
 ```
 
 ## API
 
-- [`julia_bin()`](https://epiforecasts.io/juliaready/reference/julia_bin.md)
+- [`julia_bin()`](https://epiforecasts.io/juliabridge/reference/julia_bin.md)
   resolves the Julia binary, checking `JULIACONNECTOR_JULIABIN`, then
   `JULIA_BINDIR`, then `PATH`.
 - `julia_ready(packages, github, state_env, install, project, match_manifest, verbose)`
@@ -123,14 +123,14 @@ my_function <- function(x) {
 - `julia_alive(state_env, probe)` checks that the Julia session still
   holds what you need. If it does not, it clears the setup flag. The
   next
-  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
+  [`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md)
   call then sets Julia up again.
 - `eval_julia(code)`, `call_julia(name, ...)` and `import_julia(module)`
   wrap `juliaEval`, `juliaCall` and `juliaImport`.
-  [`get_julia()`](https://epiforecasts.io/juliaready/reference/get_julia.md),
-  [`assign_julia()`](https://epiforecasts.io/juliaready/reference/assign_julia.md)
+  [`get_julia()`](https://epiforecasts.io/juliabridge/reference/get_julia.md),
+  [`assign_julia()`](https://epiforecasts.io/juliabridge/reference/assign_julia.md)
   and
-  [`command_julia()`](https://epiforecasts.io/juliaready/reference/command_julia.md)
+  [`command_julia()`](https://epiforecasts.io/juliabridge/reference/command_julia.md)
   cover the remaining common operations.
 - `manifest_julia_version(project)` reads the Julia version a
   `Manifest.toml` was resolved with. `juliaup_julia(version)` installs a
@@ -149,7 +149,7 @@ my_function <- function(x) {
   object still belongs to this session. It returns `FALSE` for a handle
   loaded from a saved R object. It also returns `FALSE` for one created
   before
-  [`julia_ready()`](https://epiforecasts.io/juliaready/reference/julia_ready.md)
+  [`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md)
   last set Julia up.
 
 ## Out of scope
@@ -157,7 +157,7 @@ my_function <- function(x) {
 - Initialising in `.onLoad`. Eager initialisation there interacts badly
   with other compiled backends (notably Stan) and can crash R while the
   package attaches. Use
-  [`ensure_julia()`](https://epiforecasts.io/juliaready/reference/ensure_julia.md).
+  [`ensure_julia()`](https://epiforecasts.io/juliabridge/reference/ensure_julia.md).
 - A Julia REPL. That is JuliaConnectoR’s job.
 
 ## Status
