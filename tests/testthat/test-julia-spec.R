@@ -52,7 +52,12 @@ test_that("arguments Julia could not read are refused", {
   expect_error(component(1), "a single name")
   expect_error(component("F", 1, NULL, 3), "positional argument")
   expect_error(component("F", `a b` = 1), "Julia identifiers")
-  expect_error(component("F", role = "not a role"), "single name")
+  expect_error(component("F", role = "not a role"), "such as .prior.")
+  expect_error(component("F", role = "code"), "juliabridge uses")
+  expect_error(component("F", role = "component"), "juliabridge uses")
+  expect_error(julia("F()", role = "code"), "juliabridge uses")
+  # A role may use letters from any script, as a class name may
+  expect_s3_class(component("F", role = "mod\u00e8le"), "julia_mod\u00e8le")
   expect_error(julia(""), "non-empty")
 })
 

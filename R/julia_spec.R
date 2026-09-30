@@ -471,10 +471,18 @@ assert_role <- function(
 #' @noRd
 .assert_role_name <- function(role) {
   if (!is.character(role) || length(role) != 1 || is.na(role) ||
-      !grepl("^[A-Za-z_][A-Za-z0-9_.]*$", role)) {
+      !grepl("^[\\p{L}_][\\p{L}\\p{N}_.]*$", role, perl = TRUE)) {
     stop(
       "`role` must be a single name, such as \"prior\" or \"model\", ",
       "using letters, digits, `.` and `_`.",
+      call. = FALSE
+    )
+  }
+  # A role becomes a class suffix, and these two are the package's own.
+  if (role %in% c("code", "component")) {
+    stop(
+      "`role` cannot be \"", role, "\", which juliabridge uses for its own ",
+      "classes. Pick another name for it.",
       call. = FALSE
     )
   }
