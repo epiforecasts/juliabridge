@@ -121,7 +121,7 @@ juliaup_binary <- function(version) {
 #' Reads the version from the manifest and, where juliaup can supply it,
 #' sets `JULIACONNECTOR_JULIABIN`. A binary the user chose, through
 #' `JULIACONNECTOR_JULIABIN` or `JULIA_BINDIR`, is left alone. A value
-#' juliaready set itself for an earlier package can be replaced. A
+#' juliabridge set itself for an earlier package can be replaced. A
 #' JuliaConnectoR server that is already running keeps its Julia.
 #'
 #' @inheritParams manifest_julia_version
@@ -139,23 +139,23 @@ match_manifest_julia <- function(project, verbose = TRUE) {
   invisible(needed)
 }
 
-#' Set `JULIACONNECTOR_JULIABIN`, remembering that juliaready set it
+#' Set `JULIACONNECTOR_JULIABIN`, remembering that juliabridge set it
 #' @noRd
 set_juliabin <- function(bin) {
   # Sys.which() returns a named string. identical() against Sys.getenv()
   # needs it unnamed.
   bin <- unname(bin)
   Sys.setenv(JULIACONNECTOR_JULIABIN = bin)
-  .juliaready_state$juliabin <- bin
+  .juliabridge_state$juliabin <- bin
 }
 
 #' Whether `JULIACONNECTOR_JULIABIN` holds a binary the user chose
 #'
 #' A path that does not exist counts as unset. [julia_bin()] skips such a
-#' path. juliaready overwrites it.
+#' path. juliabridge overwrites it.
 #' @noRd
 user_juliabin <- function() {
   current <- Sys.getenv("JULIACONNECTOR_JULIABIN")
   nzchar(current) && file.exists(current) &&
-    !identical(current, .juliaready_state$juliabin)
+    !identical(current, .juliabridge_state$juliabin)
 }

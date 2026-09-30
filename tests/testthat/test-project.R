@@ -2,7 +2,7 @@ test_that("julia_ready with project = ... activates and uses the project", {
   skip_if_not(nzchar(julia_bin()), "Julia not installed")
 
   # Build a minimal pinned project containing only Distributions
-  proj <- tempfile("juliaready_test_proj_")
+  proj <- tempfile("juliabridge_test_proj_")
   dir.create(proj)
   on.exit(unlink(proj, recursive = TRUE), add = TRUE)
   julia_subprocess(sprintf(

@@ -1,5 +1,5 @@
-Package: juliaready
-Title: Robust Julia Setup for R Packages
+Package: juliabridge
+Title: Bridge R Packages to Julia
 Version: 0.1.0
 Authors@R:
     person("Sebastian", "Funk", , "sebastian.funk@lshtm.ac.uk",
@@ -8,14 +8,15 @@ Authors@R:
 Description: Helper utilities for R packages that call into a Julia
     simulation engine. Provides a small, opinionated API for finding
     the Julia binary, installing required Julia packages, loading
-    '.jl' bridge files, and managing lazy initialisation. Uses
+    '.jl' bridge files, managing lazy initialisation, and holding
+    Julia objects from R between calls. Uses
     JuliaConnectoR (out-of-process Julia via TCP) under the hood,
     chosen over JuliaCall to structurally avoid the embedded-Julia
     segfaults that otherwise leak into R from libR/libjulia symbol
     interactions, environment poisoning, and Pkg operations.
 License: MIT + file LICENSE
-URL: https://github.com/epiforecasts/juliaready, https://epiforecasts.io/juliaready/
-BugReports: https://github.com/epiforecasts/juliaready/issues
+URL: https://github.com/epiforecasts/juliabridge, https://epiforecasts.io/juliabridge/
+BugReports: https://github.com/epiforecasts/juliabridge/issues
 Imports:
     JuliaConnectoR,
     stats

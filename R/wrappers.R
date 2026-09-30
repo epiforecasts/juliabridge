@@ -1,7 +1,7 @@
 #' Backend-agnostic wrappers around Julia eval / call / import
 #'
 #' These thin wrappers let consumer packages call into Julia through
-#' juliaready alone. If `juliaready` ever switches backend, consumer code
+#' juliabridge alone. If `juliabridge` ever switches backend, consumer code
 #' keeps working.
 #'
 #' @name wrappers
@@ -44,7 +44,7 @@ import_julia <- function(module) {
 }
 
 # Session-level state, e.g. whether the assign helper has been defined.
-.juliaready_state <- new.env(parent = emptyenv())
+.juliabridge_state <- new.env(parent = emptyenv())
 
 #' Assign an R value to a name in Julia's `Main` module
 #'
@@ -53,7 +53,7 @@ import_julia <- function(module) {
 #' Idiomatic JuliaConnectoR code prefers passing values directly via
 #' [call_julia()]; this is provided for migration convenience.
 #'
-#' Internally defines a small Julia helper `__juliaready_assign__!` on
+#' Internally defines a small Julia helper `__juliabridge_assign__!` on
 #' first use and calls it with the (Symbol, value) pair.
 #'
 #' @param name Variable name to bind in `Main`.
@@ -64,17 +64,17 @@ assign_julia <- function(name, value) {
   if (!grepl("^[A-Za-z_][A-Za-z0-9_]*$", name)) {
     stop("Invalid Julia identifier: ", name, call. = FALSE)
   }
-  if (!isTRUE(.juliaready_state$assign_helper_loaded)) {
+  if (!isTRUE(.juliabridge_state$assign_helper_loaded)) {
     JuliaConnectoR::juliaEval(
-      "function __juliaready_assign__!(name::Symbol, value)
+      "function __juliabridge_assign__!(name::Symbol, value)
          Core.eval(Main, Expr(:(=), name, value))
          nothing
        end"
     )
-    .juliaready_state$assign_helper_loaded <- TRUE
+    .juliabridge_state$assign_helper_loaded <- TRUE
   }
   sym <- JuliaConnectoR::juliaCall("Symbol", name)
-  invisible(JuliaConnectoR::juliaCall("__juliaready_assign__!", sym, value))
+  invisible(JuliaConnectoR::juliaCall("__juliabridge_assign__!", sym, value))
 }
 
 #' Fully translate a Julia value into R
