@@ -17,8 +17,8 @@ test_that("import_julia returns a callable proxy", {
 
 test_that("assign_julia binds a value in Main", {
   skip_if_not(nzchar(julia_bin()), "Julia not installed")
-  expect_null(assign_julia("juliaready_assigned", 7L))
-  expect_identical(eval_julia("juliaready_assigned"), 7L)
+  expect_null(assign_julia("juliabridge_assigned", 7L))
+  expect_identical(eval_julia("juliabridge_assigned"), 7L)
   expect_error(assign_julia("not valid", 1L), "Invalid Julia identifier")
 })
 
@@ -31,6 +31,6 @@ test_that("get_julia translates a NamedTuple into a list", {
 
 test_that("command_julia runs code for its side effects", {
   skip_if_not(nzchar(julia_bin()), "Julia not installed")
-  expect_invisible(command_julia("juliaready_commanded = 3"))
-  expect_identical(eval_julia("juliaready_commanded"), 3L)
+  expect_invisible(command_julia("juliabridge_commanded = 3"))
+  expect_identical(eval_julia("juliabridge_commanded"), 3L)
 })

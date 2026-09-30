@@ -22,7 +22,7 @@ julia_load_bridge <- function(package, files, verbose = FALSE) {
   loaded <- character()
   for (f in files) {
     # base::system.file() because pkgload's replacement rejects the inst/
-    # lookup below when juliaready itself is loaded with load_all()
+    # lookup below when juliabridge itself is loaded with load_all()
     path <- base::system.file("julia", f, package = package)
     if (!nzchar(path)) {
       # Development package loaded via pkgload: files still live under inst/
