@@ -142,18 +142,19 @@ as_julia <- function(x, ascii = FALSE) {
       .render_kwargs(x$kwargs, ascii)
     ))
   }
+  # A class of the calling package's own is asked how it renders, before the
+  # structure underneath it is read: most such classes are built on a list or
+  # a vector, which would otherwise be rendered as one.
+  if (!is.null(attr(x, "class"))) {
+    return(.render(as_julia_value(x), ascii = ascii))
+  }
   if (is.list(x)) {
     if (!is.null(names(x)) && any(nzchar(names(x)))) {
       stop("Named lists cannot be rendered as Julia values.", call. = FALSE)
     }
     return(.render_vector(vapply(x, .render, character(1), ascii = ascii)))
   }
-  if (is.atomic(x)) {
-    return(.render_atomic(x))
-  }
-  # Anything else is the calling package's own type, which it renders by
-  # supplying an `as_julia_value()` method.
-  .render(as_julia_value(x), ascii = ascii)
+  .render_atomic(x)
 }
 
 #' Render an atomic vector as a Julia scalar or vector

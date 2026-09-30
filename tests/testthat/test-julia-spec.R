@@ -109,3 +109,32 @@ test_that("printing breaks a long component over lines", {
   expect_output(print(julia("exp")), "<julia Julia code>")
   expect_output(print(component("Normal")), "Normal\\(\\)")
 })
+
+test_that("a class of the caller's own renders through as_julia_value()", {
+  # Registered as a consuming package would register it: the generic is
+  # called from inside this package, so dispatch reads the methods table
+  # rather than the caller's environment. The classes exist only here.
+  registerS3method(
+    "as_julia_value", "my_normal",
+    function(x, ...) component("Normal", x$mean, x$sd)
+  )
+  registerS3method(
+    "as_julia_value", "my_scalar",
+    function(x, ...) component("Dirac", unclass(x))
+  )
+
+  # Such a class is usually a list or a vector underneath, which would
+  # otherwise be rendered as one.
+  spec <- structure(list(mean = 0, sd = 1), class = "my_normal")
+  expect_identical(as_julia(component("F", spec)), "F(Normal(0.0, 1.0))")
+  expect_identical(as_julia(spec), "Normal(0.0, 1.0)")
+  expect_identical(
+    as_julia(component("F", structure(3.5, class = "my_scalar"))),
+    "F(Dirac(3.5))"
+  )
+})
+
+test_that("a class with no method says what is missing", {
+  expect_error(as_julia(component("F", factor("a"))), "as_julia_value")
+  expect_error(as_julia(component("F", sum)), "class 'function'")
+})
