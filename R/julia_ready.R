@@ -77,7 +77,7 @@ julia_ready <- function(
   }
 
   # Tell JuliaConnectoR which Julia binary to use, then load packages.
-  # A user-chosen binary is already set. Recording it as juliaready's own
+  # A user-chosen binary is already set. Recording it as juliabridge's own
   # would let a later setup override it.
   if (!user_juliabin()) set_juliabin(bin)
   for (pkg in packages) {
@@ -173,9 +173,9 @@ mark_setup <- function(state_env) {
   state_env$setup <- basename(tempfile("setup"))
   JuliaConnectoR::juliaEval(sprintf(
     paste(
-      "isdefined(Main, :__juliaready_setups__) ||",
-      "(global __juliaready_setups__ = Set{String}());",
-      'push!(__juliaready_setups__, "%s"); nothing'
+      "isdefined(Main, :__juliabridge_setups__) ||",
+      "(global __juliabridge_setups__ = Set{String}());",
+      'push!(__juliabridge_setups__, "%s"); nothing'
     ),
     state_env$setup
   ))
@@ -186,8 +186,8 @@ mark_setup <- function(state_env) {
 setup_probe <- function(state_env) {
   sprintf(
     paste(
-      "isdefined(Main, :__juliaready_setups__) &&",
-      'in("%s", __juliaready_setups__)'
+      "isdefined(Main, :__juliabridge_setups__) &&",
+      'in("%s", __juliabridge_setups__)'
     ),
     state_env$setup
   )

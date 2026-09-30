@@ -21,6 +21,6 @@ Idiomatic JuliaConnectoR code prefers passing values directly via
 \code{\link[=call_julia]{call_julia()}}; this is provided for migration convenience.
 }
 \details{
-Internally defines a small Julia helper \verb{__juliaready_assign__!} on
+Internally defines a small Julia helper \verb{__juliabridge_assign__!} on
 first use and calls it with the (Symbol, value) pair.
 }

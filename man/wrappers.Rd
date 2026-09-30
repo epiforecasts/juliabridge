@@ -5,6 +5,6 @@
 \title{Backend-agnostic wrappers around Julia eval / call / import}
 \description{
 These thin wrappers let consumer packages call into Julia through
-juliaready alone. If \code{juliaready} ever switches backend, consumer code
+juliabridge alone. If \code{juliabridge} ever switches backend, consumer code
 keeps working.
 }

@@ -64,12 +64,12 @@ test_that("juliaup_julia returns the binary of an installed channel", {
   expect_match(version, "version 1.12.", fixed = TRUE)
 })
 
-test_that("a binary juliaready set itself does not block matching", {
+test_that("a binary juliabridge set itself does not block matching", {
   project <- withr::local_tempdir()
   writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
   ours <- file.path("", "earlier", "julia")
   withr::local_envvar(JULIACONNECTOR_JULIABIN = NA)
-  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  withr::defer(assign("juliabin", NULL, envir = .juliabridge_state))
   set_juliabin(ours)
   local_mocked_bindings(juliaup_julia = function(version, verbose) {
     file.path("", "matched", version, "julia")
@@ -96,7 +96,7 @@ test_that("a user-chosen binary survives repeated setups", {
   project <- withr::local_tempdir()
   writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
   withr::local_envvar(JULIACONNECTOR_JULIABIN = chosen)
-  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  withr::defer(assign("juliabin", NULL, envir = .juliabridge_state))
   local_mocked_bindings(
     instantiate_julia_project = function(...) invisible(NULL),
     mark_setup = function(...) invisible(NULL),
@@ -115,9 +115,9 @@ test_that("a user-chosen binary survives repeated setups", {
   expect_identical(Sys.getenv("JULIACONNECTOR_JULIABIN"), chosen)
 })
 
-test_that("a binary found on the PATH is recognised as juliaready's own", {
+test_that("a binary found on the PATH is recognised as juliabridge's own", {
   withr::local_envvar(JULIACONNECTOR_JULIABIN = NA)
-  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  withr::defer(assign("juliabin", NULL, envir = .juliabridge_state))
   set_juliabin(c(julia = file.path("", "usr", "bin", "julia")))
   expect_false(user_juliabin())
 })

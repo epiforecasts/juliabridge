@@ -1,13 +1,13 @@
-# juliaready
+# juliabridge
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/epiforecasts/juliaready/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/epiforecasts/juliaready/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/epiforecasts/juliaready/graph/badge.svg)](https://app.codecov.io/gh/epiforecasts/juliaready)
+[![R-CMD-check](https://github.com/epiforecasts/juliabridge/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/epiforecasts/juliabridge/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/epiforecasts/juliabridge/graph/badge.svg)](https://app.codecov.io/gh/epiforecasts/juliabridge)
 <!-- badges: end -->
 
 Julia setup for R packages that wrap a Julia engine.
 
-`juliaready` collects the patterns you otherwise learn the hard way when building an R package that calls Julia:
+`juliabridge` collects the patterns you otherwise learn the hard way when building an R package that calls Julia:
 
 - which Julia binary to use when several are installed;
 - which Julia version a pinned project needs;
@@ -21,17 +21,17 @@ It is small and opinionated. In each consuming package it replaces about 100 lin
 
 ## Backend
 
-juliaready runs Julia through [JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), in a separate process from R. The main alternative, [JuliaCall](https://github.com/JuliaInterop/JuliaCall), embeds Julia in the R process. Both work for simple cases. With JuliaCall, though, R and Julia share memory, threads, signal handlers and the dynamic linker. A problem in any of them crashes both. We have seen segfaults from `LD_LIBRARY_PATH` poisoning of subprocess Julia, from `Pkg.activate(<path>)` followed by `Pkg.instantiate()` in in-process JuliaCall, and from accessing fields of NamedTuple results via `julia_eval`. With JuliaConnectoR, a Julia segfault closes a TCP socket while R keeps running. A crashed simulation can then be recovered. Out-of-process Julia also leaves a much shorter list of things you must avoid.
+juliabridge runs Julia through [JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), in a separate process from R. The main alternative, [JuliaCall](https://github.com/JuliaInterop/JuliaCall), embeds Julia in the R process. Both work for simple cases. With JuliaCall, though, R and Julia share memory, threads, signal handlers and the dynamic linker. A problem in any of them crashes both. We have seen segfaults from `LD_LIBRARY_PATH` poisoning of subprocess Julia, from `Pkg.activate(<path>)` followed by `Pkg.instantiate()` in in-process JuliaCall, and from accessing fields of NamedTuple results via `julia_eval`. With JuliaConnectoR, a Julia segfault closes a TCP socket while R keeps running. A crashed simulation can then be recovered. Out-of-process Julia also leaves a much shorter list of things you must avoid.
 
 JuliaCall has a larger ecosystem and more frequent commits, but most of that activity is platform-compatibility work. Its in-process linking problems cannot be fixed without changing its architecture.
 
-Consumer packages call `juliaready::eval_julia()`, `call_julia()` and `import_julia()` and never touch JuliaConnectoR directly. The choice of backend stays in one place.
+Consumer packages call `juliabridge::eval_julia()`, `call_julia()` and `import_julia()` and never touch JuliaConnectoR directly. The choice of backend stays in one place.
 
 ## Installation
 
 ```r
 # install.packages("remotes")
-remotes::install_github("epiforecasts/juliaready")
+remotes::install_github("epiforecasts/juliabridge")
 ```
 
 You also need [Julia](https://julialang.org/) installed; [juliaup](https://github.com/JuliaLang/juliaup) is recommended.
@@ -45,20 +45,20 @@ You also need [Julia](https://julialang.org/) installed; [juliaup](https://githu
 
 #' @export
 setup_mypkg <- function(install = TRUE) {
-  juliaready::julia_ready(
+  juliabridge::julia_ready(
     packages  = c("EpiBranch", "Distributions", "Random"),
     github    = c(EpiBranch = "epiforecasts/EpiBranch.jl"),
     state_env = .mypkg_env,
     install   = install
   )
-  juliaready::julia_load_bridge(
+  juliabridge::julia_load_bridge(
     package = "mypkg",
     files   = c("dist_lookup.jl", "simulate.jl")
   )
 }
 
 .ensure_julia <- function() {
-  juliaready::ensure_julia(.mypkg_env, setup_mypkg)
+  juliabridge::ensure_julia(.mypkg_env, setup_mypkg)
 }
 ```
 
@@ -67,7 +67,7 @@ Then in any function that touches Julia:
 ```r
 my_function <- function(x) {
   .ensure_julia()
-  juliaready::call_julia("MyJuliaPkg.do_something", x)
+  juliabridge::call_julia("MyJuliaPkg.do_something", x)
 }
 ```
 
