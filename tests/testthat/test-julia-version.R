@@ -152,3 +152,72 @@ test_that("a Julia chosen through JULIA_BINDIR blocks matching", {
   expect_null(match_manifest_julia(project, verbose = FALSE))
   expect_identical(Sys.getenv("JULIACONNECTOR_JULIABIN"), "")
 })
+
+# A fake juliaup and launcher on the PATH exercise juliaup_julia() without
+# installing anything: `juliaup add` exits with `status`, and the launcher
+# prints `binary`.
+# nolint start: nonportable_path_linter. Shebangs, not paths.
+local_fake_juliaup <- function(status = 0L, binary = "", env = parent.frame()) {
+  fake <- withr::local_tempdir(.local_envir = env)
+  writeLines(
+    c("#!/bin/sh", sprintf("exit %d", status)),
+    file.path(fake, "juliaup")
+  )
+  writeLines(
+    c("#!/bin/sh", sprintf("echo '%s'", binary)),
+    file.path(fake, "julia")
+  )
+  Sys.chmod(file.path(fake, c("juliaup", "julia")), "0755")
+  withr::local_path(fake, action = "prefix", .local_envir = env)
+  fake
+}
+# nolint end
+
+test_that("juliaup_julia returns the binary the launcher reports", {
+  skip_on_os("windows")
+  binary <- withr::local_tempfile()
+  file.create(binary)
+  local_fake_juliaup(binary = binary)
+  expect_identical(juliaup_julia("1.12", verbose = FALSE), binary)
+})
+
+test_that("juliaup_julia reports a failed install", {
+  skip_on_os("windows")
+  local_fake_juliaup(status = 1L)
+  expect_message(
+    expect_null(juliaup_julia("1.12")),
+    "could not install Julia 1.12 (exit status 1)",
+    fixed = TRUE
+  )
+})
+
+test_that("juliaup_julia reports a binary it cannot locate", {
+  skip_on_os("windows")
+  local_fake_juliaup(binary = file.path(tempdir(), "no-such-julia"))
+  expect_message(
+    expect_null(juliaup_julia("1.12")),
+    "could not be located"
+  )
+})
+
+test_that("match_manifest_julia reports the Julia it selects", {
+  project <- withr::local_tempdir()
+  writeLines("julia_version = \"1.12.6\"", file.path(project, "Manifest.toml"))
+  withr::local_envvar(JULIACONNECTOR_JULIABIN = NA, JULIA_BINDIR = NA)
+  withr::defer(assign("juliabin", NULL, envir = .juliaready_state))
+  matched <- file.path("", "matched", "julia")
+  local_mocked_bindings(juliaup_julia = function(...) matched)
+  expect_message(
+    expect_identical(match_manifest_julia(project), "1.12"),
+    "Using Julia 1.12"
+  )
+  expect_identical(Sys.getenv("JULIACONNECTOR_JULIABIN"), matched)
+})
+
+test_that("match_manifest_julia does nothing without a manifest version", {
+  withr::local_envvar(JULIACONNECTOR_JULIABIN = NA, JULIA_BINDIR = NA)
+  local_mocked_bindings(
+    juliaup_julia = function(...) stop("should not be called", call. = FALSE)
+  )
+  expect_null(match_manifest_julia(withr::local_tempdir(), verbose = FALSE))
+})
