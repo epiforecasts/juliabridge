@@ -8,15 +8,16 @@
 #'
 #' Two hazards come with that, and these functions exist for them.
 #'
-#' Handles are numbered per session, so one from a session that has gone
-#' away names whatever object now holds that number. Every handle is
-#' therefore paired with a token identifying the session that made it, and
-#' both sides compare tokens before acting.
+#' Handles are numbered per session, and one from a session that has gone
+#' away names whatever object now holds that number. Every handle is paired
+#' with a token identifying the session that made it, and both sides
+#' compare tokens before acting.
 #'
-#' Saving an R object copies the environment by value while leaving the
-#' finaliser behind, so a reloaded object names a Julia object it does not
-#' own. The environment records which state environment created it, and a
-#' copy no longer matches, which is what [julia_handle_owned()] reports.
+#' Saving an R object copies the environment by value and leaves the
+#' finaliser behind, and a reloaded object then names a Julia object it
+#' does not own. The environment records which state environment created
+#' it; a reloaded copy no longer matches, and [julia_handle_owned()]
+#' reports that.
 #'
 #' The Julia side needs three things, which a consumer package's own
 #' module provides (keeping them there lets them precompile):
@@ -81,8 +82,8 @@ julia_handle <- function(handle, session, state_env) {
 #' `FALSE` for a handle that arrived by saving and reloading, which names
 #' a Julia object belonging to the session that created it, and for one
 #' created before [julia_ready()] last set Julia up, whose object went
-#' with the old Julia server. Callers use this to say so, rather than
-#' reporting the object as missing.
+#' with the old Julia server. Callers use this to tell the user the object
+#' came from disk or an earlier session.
 #'
 #' @param x A handle from [julia_handle()].
 #' @inheritParams julia_handle
@@ -101,13 +102,12 @@ julia_handle_owned <- function(x, state_env) {
 #' Release the Julia objects of collected handles
 #'
 #' Finalisers run at arbitrary points, including partway through another
-#' Julia call, so they queue rather than call Julia. Flushing the queue
-#' from a known-safe point is this function's job: call it immediately
-#' before a Julia call of your own.
+#' Julia call, and only add the handle to a queue. This function flushes
+#' the queue; call it immediately before a Julia call of your own.
 #'
 #' Only handles from the current setup of `state_env` are released. The
-#' queue is dropped when `state_env` is not set up, and so are handles
-#' from an earlier setup, because their objects went with the old Julia
+#' queue is dropped when `state_env` is not set up. Handles from an earlier
+#' setup are dropped too, because their objects went with the old Julia
 #' server. A release that fails stays queued for the next call, up to
 #' three attempts, after which it is dropped: a release that keeps failing
 #' usually means the server was replaced without [julia_alive()] noticing.

@@ -27,15 +27,16 @@ whose finaliser queues it for release once nothing refers to it.
 \details{
 Two hazards come with that, and these functions exist for them.
 
-Handles are numbered per session, so one from a session that has gone
-away names whatever object now holds that number. Every handle is
-therefore paired with a token identifying the session that made it, and
-both sides compare tokens before acting.
+Handles are numbered per session, and one from a session that has gone
+away names whatever object now holds that number. Every handle is paired
+with a token identifying the session that made it, and both sides
+compare tokens before acting.
 
-Saving an R object copies the environment by value while leaving the
-finaliser behind, so a reloaded object names a Julia object it does not
-own. The environment records which state environment created it, and a
-copy no longer matches, which is what \code{\link[=julia_handle_owned]{julia_handle_owned()}} reports.
+Saving an R object copies the environment by value and leaves the
+finaliser behind, and a reloaded object then names a Julia object it
+does not own. The environment records which state environment created
+it; a reloaded copy no longer matches, and \code{\link[=julia_handle_owned]{julia_handle_owned()}}
+reports that.
 
 The Julia side needs three things, which a consumer package's own
 module provides (keeping them there lets them precompile):

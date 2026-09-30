@@ -25,12 +25,12 @@ longer loaded, while the flag still says they are.
 }
 \details{
 This checks the running session and clears the flag when the check
-fails, so the next \code{\link[=julia_ready]{julia_ready()}} call sets Julia up again. The
+fails, and the next \code{\link[=julia_ready]{julia_ready()}} call then sets Julia up again. The
 environment itself is kept, because callers may use its identity.
 
-JuliaConnectoR starts a new server whenever its connection has gone,
-so the check itself may start Julia. The default probe is \code{FALSE} in
-such a server, because only the server \code{\link[=julia_ready]{julia_ready()}} ran in holds the
+The check itself may start Julia, because JuliaConnectoR starts a new
+server whenever its connection has gone. The default probe is \code{FALSE}
+in such a server: only the server \code{\link[=julia_ready]{julia_ready()}} ran in holds the
 token it recorded.
 }
 \examples{

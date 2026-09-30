@@ -2,13 +2,13 @@
 #'
 #' A `Manifest.toml` records the Julia version that resolved it, and it
 #' pins standard-library versions that only exist on that version. A
-#' package shipping a pinned project therefore needs that Julia version to
+#' package shipping a pinned project needs that Julia version to
 #' instantiate cleanly.
 #'
 #' A versioned manifest (`Manifest-v1.12.toml`, supported from Julia 1.11)
-#' takes precedence over `Manifest.toml` on the Julia version it names, so
-#' the highest-versioned one is read when any exist. Its file name gives
-#' the version if the file itself records none.
+#' takes precedence over `Manifest.toml` on the Julia version it names.
+#' When any exist, the highest-versioned one is read, and its file name
+#' gives the version if the file itself records none.
 #'
 #' @param project Path to a Julia project directory containing a
 #'   `Manifest.toml` or `Manifest-v<major>.<minor>.toml`.
@@ -20,7 +20,7 @@
 #' manifest_julia_version(system.file("julia", package = "MyPkg"))
 #' }
 manifest_julia_version <- function(project) {
-  # nolint start: nonportable_path_linter. Version patterns, not paths.
+  # nolint start: nonportable_path_linter. These are version patterns.
   version_pattern <- "[0-9]+\\.[0-9]+"
   versioned <- list.files(
     project, pattern = "^Manifest-v[0-9]+\\.[0-9]+\\.toml$"
@@ -45,8 +45,8 @@ manifest_julia_version <- function(project) {
 
 #' Install a Julia version with juliaup and return its binary
 #'
-#' Leaves the user's default channel alone: the binary is returned for the
-#' caller to use, typically through `JULIACONNECTOR_JULIABIN`.
+#' The user's default channel stays as it is. The caller uses the returned
+#' binary, typically through `JULIACONNECTOR_JULIABIN`.
 #'
 #' @param version Julia version to install, e.g. `"1.12"`.
 #' @param verbose If `TRUE`, print progress messages.
@@ -94,8 +94,8 @@ juliaup_julia <- function(version, verbose = TRUE) {
 
 #' Ask the juliaup launcher where a channel's Julia binary is
 #'
-#' The launcher knows the depot, platform and exact version a channel
-#' resolves to, which a scan of the depot directory would have to guess.
+#' The launcher resolves the channel to an exact version in the right
+#' depot and for the right platform.
 #' @noRd
 juliaup_binary <- function(version) {
   exe <- if (.Platform$OS.type == "windows") "julia.exe" else "julia"
@@ -121,9 +121,8 @@ juliaup_binary <- function(version) {
 #' Reads the version from the manifest and, where juliaup can supply it,
 #' sets `JULIACONNECTOR_JULIABIN`. A binary the user chose, through
 #' `JULIACONNECTOR_JULIABIN` or `JULIA_BINDIR`, is left alone. A value
-#' juliaready set itself, for an earlier package, is not a choice and does
-#' not block matching.
-#' A JuliaConnectoR server that is already running keeps its Julia.
+#' juliaready set itself for an earlier package can be replaced. A
+#' JuliaConnectoR server that is already running keeps its Julia.
 #'
 #' @inheritParams manifest_julia_version
 #' @param verbose If `TRUE`, print progress messages.
@@ -151,8 +150,8 @@ set_juliabin <- function(bin) {
 
 #' Whether `JULIACONNECTOR_JULIABIN` holds a binary the user chose
 #'
-#' A path that does not exist is not a usable choice: [julia_bin()] skips
-#' it, and it is replaced like any other value juliaready manages.
+#' A path that does not exist counts as unset: [julia_bin()] skips it, and
+#' juliaready replaces it.
 #' @noRd
 user_juliabin <- function() {
   current <- Sys.getenv("JULIACONNECTOR_JULIABIN")

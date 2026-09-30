@@ -16,8 +16,8 @@ Path to the Julia executable, or \code{NULL} when juliaup is absent
 or the installation failed.
 }
 \description{
-Leaves the user's default channel alone: the binary is returned for the
-caller to use, typically through \code{JULIACONNECTOR_JULIABIN}.
+The user's default channel stays as it is. The caller uses the returned
+binary, typically through \code{JULIACONNECTOR_JULIABIN}.
 }
 \examples{
 \dontrun{

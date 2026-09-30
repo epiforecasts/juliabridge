@@ -18,8 +18,8 @@ julia_handle_owned(x, state_env)
 \code{FALSE} for a handle that arrived by saving and reloading, which names
 a Julia object belonging to the session that created it, and for one
 created before \code{\link[=julia_ready]{julia_ready()}} last set Julia up, whose object went
-with the old Julia server. Callers use this to say so, rather than
-reporting the object as missing.
+with the old Julia server. Callers use this to tell the user the object
+came from disk or an earlier session.
 }
 \examples{
 \dontrun{

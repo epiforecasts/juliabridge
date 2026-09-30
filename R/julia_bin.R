@@ -8,7 +8,7 @@
 #'   1. `JULIACONNECTOR_JULIABIN` env var (JuliaConnectoR's preferred
 #'      mechanism).
 #'   2. `JULIA_BINDIR` env var (Julia's own; `joinpath(JULIA_BINDIR, "julia")`).
-#'   3. `Sys.which("julia")` — fallback to PATH.
+#'   3. The `julia` on the `PATH` (`Sys.which("julia")`).
 #'
 #' @return Absolute path to the Julia executable, or `""` if not found.
 #' @export
@@ -33,10 +33,9 @@ bindir_julia <- function() {
 
 #' Run a Julia command in a subprocess
 #'
-#' Launches a fresh `julia` process for one-shot work such as `Pkg.add`
-#' or `Pkg.precompile`. This is *not* the JuliaConnectoR server — it's a
-#' transient process for installation work that runs before the server
-#' is started.
+#' Launches a short-lived `julia` process, separate from the
+#' JuliaConnectoR server, for installation work such as `Pkg.add` or
+#' `Pkg.precompile` that runs before the server starts.
 #'
 #' Strips library-path env vars that R may set (`LD_LIBRARY_PATH`,
 #' `DYLD_LIBRARY_PATH`, `DYLD_FALLBACK_LIBRARY_PATH`), because those
