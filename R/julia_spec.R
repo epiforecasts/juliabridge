@@ -70,7 +70,9 @@ component <- function(fn, ..., role = NULL) {
       args = unname(dots[keep & !named]),
       kwargs = dots[keep & named]
     ),
-    class = c(paste0("julia_", role), "julia_component")
+    class = c(
+      if (!is.null(role)) paste0("julia_", role), "julia_component"
+    )
   )
 }
 
@@ -420,7 +422,10 @@ as_julia_value.default <- function(x, ...) {
 assert_role <- function(
   x, roles, null_ok = FALSE, arg_name = deparse(substitute(x)), labels = NULL
 ) {
-  untyped <- identical(class(x), c("julia_code", "julia_component"))
+  # A component or an expression with no role says nothing about what it is,
+  # so any role accepts it: the caller has said what it is by writing it.
+  untyped <- identical(class(x), c("julia_code", "julia_component")) ||
+    identical(class(x), "julia_component")
   if ((is.null(x) && null_ok) || untyped ||
       inherits(x, paste0("julia_", roles))) {
     return(invisible(TRUE))
@@ -468,7 +473,11 @@ assert_role <- function(
 #' @export
 print.julia_component <- function(x, ...) {
   role <- sub("^julia_", "", class(x)[1])
-  label <- if (role == "code") "Julia code" else paste(role, "component")
+  label <- switch(role,
+    code = "Julia code",
+    component = "untyped component",
+    paste(role, "component")
+  )
   cat("<julia ", label, ">\n", sep = "")
   cat(.format_code(x), sep = "\n")
   invisible(x)

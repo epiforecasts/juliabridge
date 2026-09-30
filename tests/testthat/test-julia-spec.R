@@ -138,3 +138,16 @@ test_that("a class with no method says what is missing", {
   expect_error(as_julia(component("F", factor("a"))), "as_julia_value")
   expect_error(as_julia(component("F", sum)), "class 'function'")
 })
+
+test_that("a component with no role is accepted wherever one is expected", {
+  untyped <- component("Normal", 0, 1)
+  expect_identical(class(untyped), "julia_component")
+  expect_invisible(assert_role(untyped, "prior"))
+  expect_invisible(assert_role(untyped, c("prior", "model")))
+  expect_output(print(untyped), "<julia untyped component>")
+  # A role, once given, is still checked
+  expect_error(
+    assert_role(component("Normal", 0, 1, role = "prior"), "model"),
+    "must be a model component"
+  )
+})
