@@ -52,7 +52,7 @@ test_that("arguments Julia could not read are refused", {
   expect_error(component(1), "a single name")
   expect_error(component("F", 1, NULL, 3), "positional argument")
   expect_error(component("F", `a b` = 1), "Julia identifiers")
-  expect_error(component("F", role = "not a role"), "`role` must be")
+  expect_error(component("F", role = "not a role"), "single name")
   expect_error(julia(""), "non-empty")
 })
 
@@ -83,6 +83,7 @@ test_that("roles are the caller's own vocabulary", {
   expect_invisible(assert_role(prior, c("model", "prior")))
   expect_invisible(assert_role(NULL, "prior", null_ok = TRUE))
   expect_error(assert_role(prior, "model"), "must be a model component")
+  expect_error(assert_role(prior, "observation"), "must be an observation")
   expect_error(
     assert_role(prior, "model", labels = c(model = "a fitted model")),
     "must be a fitted model"
@@ -141,7 +142,7 @@ test_that("a class with no method says what is missing", {
 
 test_that("a component with no role is accepted wherever one is expected", {
   untyped <- component("Normal", 0, 1)
-  expect_identical(class(untyped), "julia_component")
+  expect_s3_class(untyped, "julia_component", exact = TRUE)
   expect_invisible(assert_role(untyped, "prior"))
   expect_invisible(assert_role(untyped, c("prior", "model")))
   expect_output(print(untyped), "<julia untyped component>")

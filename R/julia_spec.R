@@ -38,7 +38,7 @@
 #' @export
 component <- function(fn, ..., role = NULL) {
   .assert_name(fn, "fn")
-  if (!is.null(role)) .assert_name(role, "role")
+  if (!is.null(role)) .assert_role_name(role)
   dots <- list(...)
   arg_names <- names(dots)
   if (is.null(arg_names)) arg_names <- rep("", length(dots))
@@ -97,7 +97,7 @@ julia <- function(code, role = NULL) {
       !nzchar(code)) {
     stop("`code` must be a single non-empty string.", call. = FALSE)
   }
-  if (!is.null(role)) .assert_name(role, "role")
+  if (!is.null(role)) .assert_role_name(role)
   structure(
     list(code = code),
     class = c(
@@ -451,7 +451,28 @@ assert_role <- function(
   if (!is.null(labels) && role %in% names(labels)) {
     return(labels[[role]])
   }
-  paste("a", role, "component")
+  article <- if (grepl("^[aeiouAEIOU]", role)) "an" else "a"
+  paste(article, role, "component")
+}
+
+#' Check a role name
+#'
+#' A role becomes a class, so it needs to be a single name, but it is never
+#' rendered into Julia and may say whatever the calling package means by it.
+#'
+#' @param role The role to check.
+#' @return Invisibly `TRUE`.
+#' @noRd
+.assert_role_name <- function(role) {
+  if (!is.character(role) || length(role) != 1 || is.na(role) ||
+      !grepl("^[A-Za-z_][A-Za-z0-9_.]*$", role)) {
+    stop(
+      "`role` must be a single name, such as \"prior\" or \"model\", ",
+      "using letters, digits, `.` and `_`.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
 }
 
 #' Check a name that is rendered into Julia source
