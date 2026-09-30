@@ -10,8 +10,8 @@
 #'    General registry). With `project`, instantiates that project instead.
 #'    Both run in a subprocess, apart from the JuliaConnectoR server.
 #' 3. Starts (or attaches to) the JuliaConnectoR server.
-#' 4. Loads each package with `juliaEval("using <pkg>")`, which lets dotted
-#'    constructor names such as `EpiBranch.NegBin` resolve.
+#' 4. Loads each package with `juliaEval("using <pkg>")`. Dotted
+#'    constructor names such as `EpiBranch.NegBin` then resolve.
 #'
 #' Idempotent: if `state_env$ready` is already `TRUE`, returns immediately.
 #'
@@ -21,22 +21,23 @@
 #'   the General registry. Names must match entries in `packages`. Values
 #'   may be a full URL, an `"owner/repo"` shorthand, or `"owner/repo:subdir"`.
 #' @param state_env An environment used to track initialisation state. The
-#'   caller (typically a wrapping R package) supplies its own environment,
-#'   which keeps the state of several consuming packages separate.
+#'   caller (typically a wrapping R package) supplies its own environment.
+#'   Several consuming packages then keep separate state.
 #' @param install If `FALSE`, a missing package is an error.
 #' @param project Optional path to a Julia project directory containing a
 #'   `Project.toml` (and ideally a `Manifest.toml`). When supplied, the
-#'   project is activated and instantiated in a subprocess, and
-#'   `JULIA_PROJECT` is set before starting JuliaConnectoR so that the
-#'   server picks up the project. Use this when your package ships a
-#'   pinned Julia environment under `inst/julia/`. `Pkg.instantiate()`
-#'   then fetches packages from the project's manifest, and `packages`
-#'   lists the ones to load with `using`.
+#'   project is activated and instantiated in a subprocess. Setting
+#'   `JULIA_PROJECT` before JuliaConnectoR starts makes the server use the
+#'   project. Use this when your package ships a pinned Julia
+#'   environment under `inst/julia/`. `Pkg.instantiate()` fetches
+#'   everything in the project's manifest; `packages` then only names the
+#'   packages to load with `using`.
 #' @param match_manifest If `TRUE` and `project` is supplied, read the
 #'   Julia version its `Manifest.toml` was resolved with and use that
-#'   version, installing it with juliaup where available. A manifest pins
+#'   version, installing it with juliaup where available. Instantiating a
+#'   manifest under a different Julia can fail, because it pins
 #'   standard-library versions that exist only on the version that
-#'   resolved it, and instantiating it under another Julia can fail.
+#'   resolved it.
 #'   Ignored when the user has chosen a binary through
 #'   `JULIACONNECTOR_JULIABIN` or `JULIA_BINDIR`. A
 #'   JuliaConnectoR server that is already running, for instance one
@@ -75,9 +76,9 @@ julia_ready <- function(
     instantiate_julia_project(project, bin, verbose)
   }
 
-  # Tell JuliaConnectoR which Julia binary to use, then load packages. A
-  # binary the user chose is already set, and recording it as juliaready's
-  # own would let a later setup override it.
+  # Tell JuliaConnectoR which Julia binary to use, then load packages.
+  # A user-chosen binary is already set. Recording it as juliaready's own
+  # would let a later setup override it.
   if (!user_juliabin()) set_juliabin(bin)
   for (pkg in packages) {
     JuliaConnectoR::juliaEval(sprintf("using %s", pkg))
@@ -108,7 +109,7 @@ instantiate_julia_project <- function(project, bin, verbose) {
 
 #' Install any missing packages into the default depot
 #'
-#' Each package is checked individually, and only missing ones are added.
+#' Only the packages that fail to load are installed.
 #' @noRd
 install_julia_packages <- function(packages, github, bin, install, verbose) {
   missing_pkgs <- packages[!vapply(
@@ -162,10 +163,10 @@ install_julia_packages <- function(packages, github, bin, install, verbose) {
 
 #' Record this setup in the Julia server
 #'
-#' JuliaConnectoR starts a fresh server whenever its connection has gone,
-#' and that server answers queries even though this setup's packages are
-#' not loaded in it. A token stored both in `state_env` and in `Main`
-#' identifies the server this setup ran in. `tempfile()` supplies the token
+#' When its connection has gone, JuliaConnectoR starts a fresh server.
+#' That server answers queries even without this setup's packages loaded.
+#' A token stored both in `state_env` and in `Main` identifies the server
+#' this setup ran in. `tempfile()` supplies the token
 #' because it leaves the user's random number stream alone.
 #' @noRd
 mark_setup <- function(state_env) {

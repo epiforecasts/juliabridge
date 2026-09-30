@@ -16,9 +16,9 @@ the handle and the session token.}
 Invisibly the number of handles released.
 }
 \description{
-Finalisers run at arbitrary points, including partway through another
-Julia call, and only add the handle to a queue. This function flushes
-the queue; call it immediately before a Julia call of your own.
+Because a finaliser can run partway through another Julia call, it only
+adds the handle to a queue. This function flushes the queue. Call it
+immediately before a Julia call of your own.
 }
 \details{
 Only handles from the current setup of \code{state_env} are released. The

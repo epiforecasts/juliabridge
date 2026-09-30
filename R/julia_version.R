@@ -1,14 +1,14 @@
 #' Julia version a Manifest was resolved with
 #'
-#' A `Manifest.toml` records the Julia version that resolved it, and it
-#' pins standard-library versions that only exist on that version. A
+#' A `Manifest.toml` records the Julia version that resolved it and pins
+#' standard-library versions that only exist on that version. A
 #' package shipping a pinned project needs that Julia version to
 #' instantiate cleanly.
 #'
 #' A versioned manifest (`Manifest-v1.12.toml`, supported from Julia 1.11)
 #' takes precedence over `Manifest.toml` on the Julia version it names.
-#' When any exist, the highest-versioned one is read, and its file name
-#' gives the version if the file itself records none.
+#' When any exist, the highest-versioned one is read. If it records no
+#' Julia version, its file name supplies one.
 #'
 #' @param project Path to a Julia project directory containing a
 #'   `Manifest.toml` or `Manifest-v<major>.<minor>.toml`.
@@ -142,7 +142,8 @@ match_manifest_julia <- function(project, verbose = TRUE) {
 #' Set `JULIACONNECTOR_JULIABIN`, remembering that juliaready set it
 #' @noRd
 set_juliabin <- function(bin) {
-  # Sys.which() names its result, which Sys.getenv() will not match.
+  # Sys.which() returns a named string. identical() against Sys.getenv()
+  # needs it unnamed.
   bin <- unname(bin)
   Sys.setenv(JULIACONNECTOR_JULIABIN = bin)
   .juliaready_state$juliabin <- bin
@@ -150,8 +151,8 @@ set_juliabin <- function(bin) {
 
 #' Whether `JULIACONNECTOR_JULIABIN` holds a binary the user chose
 #'
-#' A path that does not exist counts as unset: [julia_bin()] skips it, and
-#' juliaready replaces it.
+#' A path that does not exist counts as unset. [julia_bin()] skips such a
+#' path. juliaready overwrites it.
 #' @noRd
 user_juliabin <- function() {
   current <- Sys.getenv("JULIACONNECTOR_JULIABIN")

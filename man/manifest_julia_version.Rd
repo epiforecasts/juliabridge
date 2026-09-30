@@ -15,16 +15,16 @@ The major and minor version as a string (e.g. \code{"1.12"}), or
 \code{NULL} when there is no manifest or it records no version.
 }
 \description{
-A \code{Manifest.toml} records the Julia version that resolved it, and it
-pins standard-library versions that only exist on that version. A
+A \code{Manifest.toml} records the Julia version that resolved it and pins
+standard-library versions that only exist on that version. A
 package shipping a pinned project needs that Julia version to
 instantiate cleanly.
 }
 \details{
 A versioned manifest (\code{Manifest-v1.12.toml}, supported from Julia 1.11)
 takes precedence over \code{Manifest.toml} on the Julia version it names.
-When any exist, the highest-versioned one is read, and its file name
-gives the version if the file itself records none.
+When any exist, the highest-versioned one is read. If it records no
+Julia version, its file name supplies one.
 }
 \examples{
 \dontrun{

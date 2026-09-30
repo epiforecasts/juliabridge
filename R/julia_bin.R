@@ -49,7 +49,7 @@ bindir_julia <- function() {
 #' @return When `check = FALSE`, a logical. When `check = TRUE`, invisible
 #'   `TRUE` on success (errors otherwise).
 #' @noRd
-# Library-path variables R may set, which point Julia at R's libraries.
+# R may set these library paths to its own libraries. Julia must not see them.
 lib_path_vars <- c(
   "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH"
 )

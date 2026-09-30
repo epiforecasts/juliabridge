@@ -21,25 +21,24 @@ An environment holding \code{handle}, \code{session} and the owning
 Some Julia results are too big, or too Julia-shaped, to convert: an
 MCMC chain a later call will sample from, a simulation state later
 summarised. The Julia side keeps such an object in a registry and
-returns an integer handle, and R keeps the handle in an environment
-whose finaliser queues it for release once nothing refers to it.
+returns an integer handle. R holds the handle in an environment whose
+finaliser queues it for release once nothing refers to it.
 }
 \details{
-Two hazards come with that, and these functions exist for them.
+These functions deal with two hazards of that arrangement.
 
-Handles are numbered per session, and one from a session that has gone
-away names whatever object now holds that number. Every handle is paired
-with a token identifying the session that made it, and both sides
+Handles are numbered per session. After a restart, an old handle names
+whatever object the new session gave that number. Each handle is
+therefore paired with a token for the session that made it. Both sides
 compare tokens before acting.
 
-Saving an R object copies the environment by value and leaves the
-finaliser behind, and a reloaded object then names a Julia object it
-does not own. The environment records which state environment created
-it; a reloaded copy no longer matches, and \code{\link[=julia_handle_owned]{julia_handle_owned()}}
-reports that.
+Saving an R object copies the environment by value but not its
+finaliser. A reloaded object then points at a Julia object it does not
+own. \code{\link[=julia_handle_owned]{julia_handle_owned()}} detects this by comparing the state
+environment recorded in the handle with the current one.
 
-The Julia side needs three things, which a consumer package's own
-module provides (keeping them there lets them precompile):
+A consumer package defines three things on the Julia side, in its own
+module where they precompile:
 
 \if{html}{\out{<div class="sourceCode julia">}}\preformatted{const HANDLES = Dict\{Int, Any\}()
 const NEXT_HANDLE = Ref(0)
@@ -62,8 +61,8 @@ function release!(handle::Integer, session::AbstractString)
 end
 }\if{html}{\out{</div>}}
 
-A function returning a handle returns \code{SESSION[]} alongside it, and one
-acting on a handle takes the token and refuses a mismatch.
+A function returning a handle also returns \code{SESSION[]}. A function
+acting on a handle takes that token too and refuses a mismatch.
 }
 \examples{
 \dontrun{

@@ -3,24 +3,23 @@
 #' Some Julia results are too big, or too Julia-shaped, to convert: an
 #' MCMC chain a later call will sample from, a simulation state later
 #' summarised. The Julia side keeps such an object in a registry and
-#' returns an integer handle, and R keeps the handle in an environment
-#' whose finaliser queues it for release once nothing refers to it.
+#' returns an integer handle. R holds the handle in an environment whose
+#' finaliser queues it for release once nothing refers to it.
 #'
-#' Two hazards come with that, and these functions exist for them.
+#' These functions deal with two hazards of that arrangement.
 #'
-#' Handles are numbered per session, and one from a session that has gone
-#' away names whatever object now holds that number. Every handle is paired
-#' with a token identifying the session that made it, and both sides
+#' Handles are numbered per session. After a restart, an old handle names
+#' whatever object the new session gave that number. Each handle is
+#' therefore paired with a token for the session that made it. Both sides
 #' compare tokens before acting.
 #'
-#' Saving an R object copies the environment by value and leaves the
-#' finaliser behind, and a reloaded object then names a Julia object it
-#' does not own. The environment records which state environment created
-#' it; a reloaded copy no longer matches, and [julia_handle_owned()]
-#' reports that.
+#' Saving an R object copies the environment by value but not its
+#' finaliser. A reloaded object then points at a Julia object it does not
+#' own. [julia_handle_owned()] detects this by comparing the state
+#' environment recorded in the handle with the current one.
 #'
-#' The Julia side needs three things, which a consumer package's own
-#' module provides (keeping them there lets them precompile):
+#' A consumer package defines three things on the Julia side, in its own
+#' module where they precompile:
 #'
 #' ```julia
 #' const HANDLES = Dict{Int, Any}()
@@ -44,8 +43,8 @@
 #' end
 #' ```
 #'
-#' A function returning a handle returns `SESSION[]` alongside it, and one
-#' acting on a handle takes the token and refuses a mismatch.
+#' A function returning a handle also returns `SESSION[]`. A function
+#' acting on a handle takes that token too and refuses a mismatch.
 #'
 #' @param handle Integer handle returned by the Julia side.
 #' @param session Token identifying the Julia session that made it.
@@ -79,11 +78,11 @@ julia_handle <- function(handle, session, state_env) {
 
 #' Does this R session own the Julia object behind a handle?
 #'
-#' `FALSE` for a handle that arrived by saving and reloading, which names
-#' a Julia object belonging to the session that created it, and for one
-#' created before [julia_ready()] last set Julia up, whose object went
-#' with the old Julia server. Callers use this to tell the user the object
-#' came from disk or an earlier session.
+#' Returns `FALSE` for a handle that arrived by saving and reloading,
+#' whose Julia object belongs to the session that created it. It also
+#' returns `FALSE` for a handle created before [julia_ready()] last set
+#' Julia up, whose object went with the old Julia server. Callers use this
+#' to tell the user the object came from disk or an earlier session.
 #'
 #' @param x A handle from [julia_handle()].
 #' @inheritParams julia_handle
@@ -101,9 +100,9 @@ julia_handle_owned <- function(x, state_env) {
 
 #' Release the Julia objects of collected handles
 #'
-#' Finalisers run at arbitrary points, including partway through another
-#' Julia call, and only add the handle to a queue. This function flushes
-#' the queue; call it immediately before a Julia call of your own.
+#' Because a finaliser can run partway through another Julia call, it only
+#' adds the handle to a queue. This function flushes the queue. Call it
+#' immediately before a Julia call of your own.
 #'
 #' Only handles from the current setup of `state_env` are released. The
 #' queue is dropped when `state_env` is not set up. Handles from an earlier

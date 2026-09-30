@@ -1,12 +1,12 @@
 #' Is the Julia session still usable?
 #'
-#' [julia_ready()] records that setup has run, and returns immediately on
-#' a later call. That leaves a session stuck once its Julia process goes
+#' [julia_ready()] records that setup has run and returns immediately when
+#' called again. That leaves a session stuck once its Julia process goes
 #' away, whether it was stopped, interrupted or died: the packages are no
 #' longer loaded, while the flag still says they are.
 #'
 #' This checks the running session and clears the flag when the check
-#' fails, and the next [julia_ready()] call then sets Julia up again. The
+#' fails. The next [julia_ready()] call then sets Julia up again. The
 #' environment itself is kept, because callers may use its identity.
 #'
 #' The check itself may start Julia, because JuliaConnectoR starts a new

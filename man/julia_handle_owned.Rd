@@ -15,11 +15,11 @@ julia_handle_owned(x, state_env)
 \code{TRUE} when the current setup of \code{state_env} created the handle.
 }
 \description{
-\code{FALSE} for a handle that arrived by saving and reloading, which names
-a Julia object belonging to the session that created it, and for one
-created before \code{\link[=julia_ready]{julia_ready()}} last set Julia up, whose object went
-with the old Julia server. Callers use this to tell the user the object
-came from disk or an earlier session.
+Returns \code{FALSE} for a handle that arrived by saving and reloading,
+whose Julia object belongs to the session that created it. It also
+returns \code{FALSE} for a handle created before \code{\link[=julia_ready]{julia_ready()}} last set
+Julia up, whose object went with the old Julia server. Callers use this
+to tell the user the object came from disk or an earlier session.
 }
 \examples{
 \dontrun{
