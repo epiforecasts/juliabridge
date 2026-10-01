@@ -4,13 +4,13 @@
 \alias{julia}
 \title{Embed Julia code in a model}
 \usage{
-julia(code, role = NULL)
+julia(code, .role = NULL)
 }
 \arguments{
 \item{code}{Character string of Julia code.}
 
-\item{role}{Optional role (see \code{\link[=julia_spec]{julia_spec()}}). Without one the expression
-is accepted wherever a spec is expected.}
+\item{.role}{Optional role (see \code{\link[=julia_spec]{julia_spec()}}). Without one the
+expression is accepted wherever a spec is expected.}
 }
 \value{
 An object of class \code{julia_code}, which is also a

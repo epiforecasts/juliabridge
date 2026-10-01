@@ -58,13 +58,19 @@ test_that("arguments Julia could not read are refused", {
   expect_error(julia_spec(1), "a single name")
   expect_error(julia_spec("F", 1, NULL, 3), "positional argument")
   expect_error(julia_spec("F", `a b` = 1), "Julia identifiers")
-  expect_error(julia_spec("F", role = "not a role"), "such as .prior.")
-  expect_error(julia_spec("F", role = "code"), "juliabridge uses")
-  expect_error(julia_spec("F", role = "spec"), "juliabridge uses")
-  expect_error(julia("F()", role = "code"), "juliabridge uses")
+  expect_error(julia_spec("F", .role = "not a role"), "such as .prior.")
+  expect_error(julia_spec("F", .role = "code"), "juliabridge uses")
+  expect_error(julia_spec("F", .role = "spec"), "juliabridge uses")
+  expect_error(julia("F()", .role = "code"), "juliabridge uses")
   # A role may use letters from any script, as a class name may
-  expect_s3_class(julia_spec("F", role = "mod\u00e8le"), "julia_mod\u00e8le")
+  expect_s3_class(julia_spec("F", .role = "mod\u00e8le"), "julia_mod\u00e8le")
   expect_error(julia(""), "non-empty")
+})
+
+test_that("a Julia keyword named role or fn reaches the constructor", {
+  spec <- julia_spec("F", role = "sink", fn = "exp", .role = "prior")
+  expect_identical(as_julia(spec), "F(; role = \"sink\", fn = \"exp\")")
+  expect_s3_class(spec, "julia_prior")
 })
 
 test_that("non-ASCII keyword names are escaped only in ASCII mode", {
@@ -87,7 +93,7 @@ test_that("julia() inserts code verbatim", {
 })
 
 test_that("roles are the caller's own vocabulary", {
-  prior <- julia_spec("Normal", 0, 1, role = "prior")
+  prior <- julia_spec("Normal", 0, 1, .role = "prior")
   expect_s3_class(prior, "julia_prior")
   expect_s3_class(prior, "julia_spec")
   expect_invisible(assert_role(prior, "prior"))
@@ -104,7 +110,7 @@ test_that("roles are the caller's own vocabulary", {
 
 test_that("an untyped julia() expression satisfies any role", {
   expect_invisible(assert_role(julia("anything()"), "model"))
-  expect_error(assert_role(julia("Normal()", role = "prior"), "model"))
+  expect_error(assert_role(julia("Normal()", .role = "prior"), "model"))
 })
 
 test_that("printing breaks a long spec over lines", {
@@ -115,7 +121,7 @@ test_that("printing breaks a long spec over lines", {
       julia_spec("Normal", 0, 1),
       julia_spec("Gamma", 6.5, 0.62)
     ),
-    role = "model"
+    .role = "model"
   )
   lines <- .format_code(nested)
   expect_gt(length(lines), 1)
@@ -169,7 +175,7 @@ test_that("a spec with no role is accepted wherever one is expected", {
   expect_output(print(untyped), "<julia spec>")
   # A role, once given, is still checked
   expect_error(
-    assert_role(julia_spec("Normal", 0, 1, role = "prior"), "model"),
+    assert_role(julia_spec("Normal", 0, 1, .role = "prior"), "model"),
     "must be a model spec"
   )
 })

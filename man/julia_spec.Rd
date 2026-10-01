@@ -4,7 +4,7 @@
 \alias{julia_spec}
 \title{Describe a Julia constructor call}
 \usage{
-julia_spec(.fn, ..., role = NULL)
+julia_spec(.fn, ..., .role = NULL)
 }
 \arguments{
 \item{.fn}{Character string. Name of the Julia constructor. It is spelled
@@ -15,11 +15,12 @@ rather than being taken for this argument.}
 and named arguments become keyword arguments. Keyword names may contain
 non-ASCII characters.}
 
-\item{role}{Optional character string naming what the spec is, in
+\item{.role}{Optional character string naming what the spec is, in
 whatever vocabulary the calling package uses (for example \code{"prior"} or
 \code{"model"}). It becomes a class, so \code{\link[=assert_role]{assert_role()}} can check that
 specs are composed sensibly. \code{NULL} leaves the spec untyped,
-which every role accepts.}
+which every role accepts. It is spelled with a dot for the same reason
+as \code{.fn}, so that a Julia keyword named \code{role} reaches \code{...}.}
 }
 \value{
 An object of class \code{julia_spec}, holding the constructor name
@@ -46,7 +47,7 @@ named list and an empty value are all refused, since Julia would read them
 as something the R value did not say.
 }
 \examples{
-julia_spec("Normal", 0, 1, role = "prior")
+julia_spec("Normal", 0, 1, .role = "prior")
 
 # Keyword arguments, and a spec nested inside another
 julia_spec("Truncated", julia_spec("Normal", 0, 1), lower = 0)

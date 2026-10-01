@@ -27,25 +27,26 @@
 #' @param ... Arguments to the constructor. Unnamed arguments are positional
 #'   and named arguments become keyword arguments. Keyword names may contain
 #'   non-ASCII characters.
-#' @param role Optional character string naming what the spec is, in
+#' @param .role Optional character string naming what the spec is, in
 #'   whatever vocabulary the calling package uses (for example `"prior"` or
 #'   `"model"`). It becomes a class, so [assert_role()] can check that
 #'   specs are composed sensibly. `NULL` leaves the spec untyped,
-#'   which every role accepts.
+#'   which every role accepts. It is spelled with a dot for the same reason
+#'   as `.fn`, so that a Julia keyword named `role` reaches `...`.
 #'
 #' @return An object of class `julia_spec`, holding the constructor name
 #'   in `$fn`, the positional arguments in `$args` and the keyword arguments
 #'   in `$kwargs`. A package may read those to inspect or rewrite a call.
 #'
 #' @examples
-#' julia_spec("Normal", 0, 1, role = "prior")
+#' julia_spec("Normal", 0, 1, .role = "prior")
 #'
 #' # Keyword arguments, and a spec nested inside another
 #' julia_spec("Truncated", julia_spec("Normal", 0, 1), lower = 0)
 #' @export
-julia_spec <- function(.fn, ..., role = NULL) {
+julia_spec <- function(.fn, ..., .role = NULL) {
   .assert_name(.fn, ".fn")
-  if (!is.null(role)) .assert_role_name(role)
+  if (!is.null(.role)) .assert_role_name(.role)
   dots <- list(...)
   arg_names <- names(dots)
   if (is.null(arg_names)) arg_names <- rep("", length(dots))
@@ -78,7 +79,7 @@ julia_spec <- function(.fn, ..., role = NULL) {
       kwargs = dots[keep & named]
     ),
     class = c(
-      if (!is.null(role)) paste0("julia_", role), "julia_spec"
+      if (!is.null(.role)) paste0("julia_", .role), "julia_spec"
     )
   )
 }
@@ -90,8 +91,8 @@ julia_spec <- function(.fn, ..., role = NULL) {
 #' objects from other Julia packages.
 #'
 #' @param code Character string of Julia code.
-#' @param role Optional role (see [julia_spec()]). Without one the expression
-#'   is accepted wherever a spec is expected.
+#' @param .role Optional role (see [julia_spec()]). Without one the
+#'   expression is accepted wherever a spec is expected.
 #'
 #' @return An object of class `julia_code`, which is also a
 #'   `julia_spec` and holds the code in `$code`. It has no `$fn`,
@@ -102,16 +103,16 @@ julia_spec <- function(.fn, ..., role = NULL) {
 #' # A Julia function, which has no R equivalent to render
 #' julia_spec("Sampler", transform = julia("identity"))
 #' @export
-julia <- function(code, role = NULL) {
+julia <- function(code, .role = NULL) {
   if (!is.character(code) || length(code) != 1 || is.na(code) ||
       !nzchar(code)) {
     stop("`code` must be a single non-empty string.", call. = FALSE)
   }
-  if (!is.null(role)) .assert_role_name(role)
+  if (!is.null(.role)) .assert_role_name(.role)
   structure(
     list(code = code),
     class = c(
-      if (!is.null(role)) paste0("julia_", role),
+      if (!is.null(.role)) paste0("julia_", .role),
       "julia_code", "julia_spec"
     )
   )
@@ -490,7 +491,7 @@ as_julia_value.default <- function(x, ...) {
 #' @return Invisibly `TRUE`.
 #' @export
 #' @examples
-#' prior <- julia_spec("Normal", 0, 1, role = "prior")
+#' prior <- julia_spec("Normal", 0, 1, .role = "prior")
 #' assert_role(prior, "prior")
 #' try(assert_role(prior, "model"))
 assert_role <- function(
@@ -539,7 +540,7 @@ assert_role <- function(
   if (!is.character(role) || length(role) != 1 || is.na(role) ||
       !grepl("^[\\p{L}_][\\p{L}\\p{N}_.]*$", role, perl = TRUE)) {
     stop(
-      "`role` must be a single name, such as \"prior\" or \"model\", ",
+      "`.role` must be a single name, such as \"prior\" or \"model\", ",
       "using letters, digits, `.` and `_`.",
       call. = FALSE
     )
@@ -547,7 +548,7 @@ assert_role <- function(
   # A role becomes a class suffix, and these two are the package's own.
   if (role %in% c("code", "spec")) {
     stop(
-      "`role` cannot be \"", role, "\", which juliabridge uses for its own ",
+      "`.role` cannot be \"", role, "\", which juliabridge uses for its own ",
       "classes. Pick another name for it.",
       call. = FALSE
     )
