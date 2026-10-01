@@ -9,7 +9,7 @@
 #' own constructors on top of this, and exposes it directly so that users can
 #' reach anything it has not wrapped.
 #'
-#' Arguments are rendered to Julia as follows: components and [julia()]
+#' Arguments are rendered to Julia as follows: specs and [julia()]
 #' expressions are inserted as code, numeric vectors of length one become
 #' scalars and longer ones become vectors, unnamed lists become vectors,
 #' `NA` becomes `missing`, and character strings become Julia strings.
@@ -27,23 +27,23 @@
 #' @param ... Arguments to the constructor. Unnamed arguments are positional
 #'   and named arguments become keyword arguments. Keyword names may contain
 #'   non-ASCII characters.
-#' @param role Optional character string naming what the component is, in
+#' @param role Optional character string naming what the spec is, in
 #'   whatever vocabulary the calling package uses (for example `"prior"` or
 #'   `"model"`). It becomes a class, so [assert_role()] can check that
-#'   components are composed sensibly. `NULL` leaves the component untyped,
+#'   specs are composed sensibly. `NULL` leaves the spec untyped,
 #'   which every role accepts.
 #'
-#' @return An object of class `julia_component`, holding the constructor name
+#' @return An object of class `julia_spec`, holding the constructor name
 #'   in `$fn`, the positional arguments in `$args` and the keyword arguments
 #'   in `$kwargs`. A package may read those to inspect or rewrite a call.
 #'
 #' @examples
-#' component("Normal", 0, 1, role = "prior")
+#' julia_spec("Normal", 0, 1, role = "prior")
 #'
-#' # Keyword arguments, and a component nested inside another
-#' component("Truncated", component("Normal", 0, 1), lower = 0)
+#' # Keyword arguments, and a spec nested inside another
+#' julia_spec("Truncated", julia_spec("Normal", 0, 1), lower = 0)
 #' @export
-component <- function(.fn, ..., role = NULL) {
+julia_spec <- function(.fn, ..., role = NULL) {
   .assert_name(.fn, ".fn")
   if (!is.null(role)) .assert_role_name(role)
   dots <- list(...)
@@ -78,29 +78,29 @@ component <- function(.fn, ..., role = NULL) {
       kwargs = dots[keep & named]
     ),
     class = c(
-      if (!is.null(role)) paste0("julia_", role), "julia_component"
+      if (!is.null(role)) paste0("julia_", role), "julia_spec"
     )
   )
 }
 
 #' Embed Julia code in a model
 #'
-#' Marks a string as Julia source to be inserted verbatim when a component is
+#' Marks a string as Julia source to be inserted verbatim when a spec is
 #' rendered, for arguments that cannot be expressed in R, such as functions or
 #' objects from other Julia packages.
 #'
 #' @param code Character string of Julia code.
-#' @param role Optional role (see [component()]). Without one the expression
-#'   is accepted wherever a component is expected.
+#' @param role Optional role (see [julia_spec()]). Without one the expression
+#'   is accepted wherever a spec is expected.
 #'
 #' @return An object of class `julia_code`, which is also a
-#'   `julia_component` and holds the code in `$code`. It has no `$fn`,
+#'   `julia_spec` and holds the code in `$code`. It has no `$fn`,
 #'   `$args` or `$kwargs`, so a package walking a call branches on
 #'   `inherits(x, "julia_code")` first.
 #'
 #' @examples
 #' # A Julia function, which has no R equivalent to render
-#' component("Sampler", transform = julia("identity"))
+#' julia_spec("Sampler", transform = julia("identity"))
 #' @export
 julia <- function(code, role = NULL) {
   if (!is.character(code) || length(code) != 1 || is.na(code) ||
@@ -112,28 +112,28 @@ julia <- function(code, role = NULL) {
     list(code = code),
     class = c(
       if (!is.null(role)) paste0("julia_", role),
-      "julia_code", "julia_component"
+      "julia_code", "julia_spec"
     )
   )
 }
 
-#' Render a component as Julia code
+#' Render a spec as Julia code
 #'
-#' @param x A component from [component()] or [julia()].
+#' @param x A spec from [julia_spec()] or [julia()].
 #' @param ascii Logical. If `TRUE`, keyword names with non-ASCII characters
 #'   are written with Unicode escapes, as string literals always are. Code
 #'   supplied through [julia()] is inserted verbatim either way. The default
 #'   gives the more readable form that can be pasted into Julia.
 #'
-#' @return A character string of Julia code that constructs the component.
+#' @return A character string of Julia code that constructs the spec.
 #'
 #' @examples
-#' as_julia(component("Gamma", 6.5, 0.62))
+#' as_julia(julia_spec("Gamma", 6.5, 0.62))
 #'
 #' # A keyword name outside ASCII travels as an escape, so the code is ASCII
 #' greek <- list(1)
 #' names(greek) <- "\u03f5_t"
-#' as_julia(do.call(component, c("Process", greek)), ascii = TRUE)
+#' as_julia(do.call(julia_spec, c("Process", greek)), ascii = TRUE)
 #' @export
 as_julia <- function(x, ascii = FALSE) {
   .render(x, ascii = ascii)
@@ -141,7 +141,7 @@ as_julia <- function(x, ascii = FALSE) {
 
 #' Render an R value as Julia code
 #'
-#' @param x An R value or component.
+#' @param x An R value or spec.
 #' @param ascii Logical. See [as_julia()].
 #' @return A character string of Julia code.
 #' @noRd
@@ -149,7 +149,7 @@ as_julia <- function(x, ascii = FALSE) {
   if (inherits(x, "julia_code")) {
     return(x$code)
   }
-  if (inherits(x, "julia_component")) {
+  if (inherits(x, "julia_spec")) {
     return(.render_call(
       x$fn,
       vapply(x$args, .render, character(1), ascii = ascii),
@@ -245,17 +245,17 @@ as_julia <- function(x, ascii = FALSE) {
 #'
 #' The extension point for a calling package with its own way of describing a
 #' value, such as a distribution object. Write a method returning either a
-#' component from [component()] or a plain R value, and it renders wherever
+#' spec from [julia_spec()] or a plain R value, and it renders wherever
 #' the value appears.
 #'
 #' @param x The value to render.
 #' @param ... Passed to methods.
-#' @return A component or an R value that renders on its own.
+#' @return A spec or an R value that renders on its own.
 #' @export
 #' @examples
 #' # A package with its own distribution class renders it like this:
 #' as_julia_value.my_normal <- function(x, ...) {
-#'   component("Normal", x$mean, x$sd)
+#'   julia_spec("Normal", x$mean, x$sd)
 #' }
 as_julia_value <- function(x, ...) {
   UseMethod("as_julia_value")
@@ -375,12 +375,12 @@ as_julia_value.default <- function(x, ...) {
   paste0("\"", paste(chars, collapse = ""), "\"")
 }
 
-#' Format a component as indented Julia code
+#' Format a spec as indented Julia code
 #'
 #' Calls that fit within `width` stay on one line; longer ones put each
 #' argument on its own line.
 #'
-#' @param x A component or R value.
+#' @param x A spec or R value.
 #' @param width Maximum line width.
 #' @param indent Current indentation level.
 #' @return Character vector of lines.
@@ -389,12 +389,12 @@ as_julia_value.default <- function(x, ...) {
   # As in `.render()`: a consumer's class is asked how it renders before the
   # structure underneath it is read, so a broken-up print agrees with the
   # code that would be sent to Julia.
-  if (!inherits(x, "julia_component") && !is.null(attr(x, "class"))) {
+  if (!inherits(x, "julia_spec") && !is.null(attr(x, "class"))) {
     return(.format_code(as_julia_value(x), width = width, indent = indent))
   }
   pad <- strrep("    ", indent)
   flat <- .render(x, ascii = FALSE)
-  is_vector <- is.list(x) && !inherits(x, "julia_component")
+  is_vector <- is.list(x) && !inherits(x, "julia_spec")
   if (.fits(pad, flat, width, x, is_vector)) {
     return(paste0(pad, flat))
   }
@@ -416,7 +416,7 @@ as_julia_value.default <- function(x, ...) {
 #' @return `TRUE` when the value goes on one line.
 #' @noRd
 .fits <- function(pad, flat, width, x, is_vector) {
-  breakable <- is_vector || inherits(x, "julia_component")
+  breakable <- is_vector || inherits(x, "julia_spec")
   nchar(pad) + nchar(flat) <= width || inherits(x, "julia_code") || !breakable
 }
 
@@ -431,7 +431,7 @@ as_julia_value.default <- function(x, ...) {
   c(paste0(pad, "["), .join_lines(elements), paste0(pad, "]"))
 }
 
-#' Format a component call over several lines
+#' Format a spec call over several lines
 #'
 #' @inheritParams .format_code
 #' @param pad The indentation of the call itself.
@@ -472,7 +472,7 @@ as_julia_value.default <- function(x, ...) {
   }))
 }
 
-#' Check that an argument is a component of an accepted role
+#' Check that an argument is a spec of an accepted role
 #'
 #' Composition errors are worth catching in R, where the argument can be
 #' named, rather than in Julia, where the error arrives from inside a
@@ -490,16 +490,16 @@ as_julia_value.default <- function(x, ...) {
 #' @return Invisibly `TRUE`.
 #' @export
 #' @examples
-#' prior <- component("Normal", 0, 1, role = "prior")
+#' prior <- julia_spec("Normal", 0, 1, role = "prior")
 #' assert_role(prior, "prior")
 #' try(assert_role(prior, "model"))
 assert_role <- function(
   x, roles, null_ok = FALSE, arg_name = deparse(substitute(x)), labels = NULL
 ) {
-  # A component or an expression with no role says nothing about what it is,
+  # A spec or an expression with no role says nothing about what it is,
   # so any role accepts it: the caller has said what it is by writing it.
-  untyped <- identical(class(x), c("julia_code", "julia_component")) ||
-    identical(class(x), "julia_component")
+  untyped <- identical(class(x), c("julia_code", "julia_spec")) ||
+    identical(class(x), "julia_spec")
   if ((is.null(x) && null_ok) || untyped ||
       inherits(x, paste0("julia_", roles))) {
     return(invisible(TRUE))
@@ -524,7 +524,7 @@ assert_role <- function(
     return(labels[[role]])
   }
   article <- if (grepl("^[aeiouAEIOU]", role)) "an" else "a"
-  paste(article, role, "component")
+  paste(article, role, "spec")
 }
 
 #' Check a role name
@@ -545,7 +545,7 @@ assert_role <- function(
     )
   }
   # A role becomes a class suffix, and these two are the package's own.
-  if (role %in% c("code", "component")) {
+  if (role %in% c("code", "spec")) {
     stop(
       "`role` cannot be \"", role, "\", which juliabridge uses for its own ",
       "classes. Pick another name for it.",
@@ -574,17 +574,17 @@ assert_role <- function(
 }
 
 #' @export
-format.julia_component <- function(x, width = 78L, ...) {
+format.julia_spec <- function(x, width = 78L, ...) {
   .format_code(x, width = width)
 }
 
 #' @export
-print.julia_component <- function(x, ...) {
+print.julia_spec <- function(x, ...) {
   role <- sub("^julia_", "", class(x)[1])
   label <- switch(role,
-    code = "Julia code",
-    component = "untyped component",
-    paste(role, "component")
+    code = "code",
+    spec = "spec",
+    paste(role, "spec")
   )
   cat("<julia ", label, ">\n", sep = "")
   # Through `format()`, so that a package registering a method for its own

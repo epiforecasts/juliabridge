@@ -12,17 +12,17 @@ as_julia_value(x, ...)
 \item{...}{Passed to methods.}
 }
 \value{
-A component or an R value that renders on its own.
+A spec or an R value that renders on its own.
 }
 \description{
 The extension point for a calling package with its own way of describing a
 value, such as a distribution object. Write a method returning either a
-component from \code{\link[=component]{component()}} or a plain R value, and it renders wherever
+spec from \code{\link[=julia_spec]{julia_spec()}} or a plain R value, and it renders wherever
 the value appears.
 }
 \examples{
 # A package with its own distribution class renders it like this:
 as_julia_value.my_normal <- function(x, ...) {
-  component("Normal", x$mean, x$sd)
+  julia_spec("Normal", x$mean, x$sd)
 }
 }

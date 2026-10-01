@@ -2,12 +2,12 @@
 % Please edit documentation in R/julia_spec.R
 \name{as_julia}
 \alias{as_julia}
-\title{Render a component as Julia code}
+\title{Render a spec as Julia code}
 \usage{
 as_julia(x, ascii = FALSE)
 }
 \arguments{
-\item{x}{A component from \code{\link[=component]{component()}} or \code{\link[=julia]{julia()}}.}
+\item{x}{A spec from \code{\link[=julia_spec]{julia_spec()}} or \code{\link[=julia]{julia()}}.}
 
 \item{ascii}{Logical. If \code{TRUE}, keyword names with non-ASCII characters
 are written with Unicode escapes, as string literals always are. Code
@@ -15,16 +15,16 @@ supplied through \code{\link[=julia]{julia()}} is inserted verbatim either way. 
 gives the more readable form that can be pasted into Julia.}
 }
 \value{
-A character string of Julia code that constructs the component.
+A character string of Julia code that constructs the spec.
 }
 \description{
-Render a component as Julia code
+Render a spec as Julia code
 }
 \examples{
-as_julia(component("Gamma", 6.5, 0.62))
+as_julia(julia_spec("Gamma", 6.5, 0.62))
 
 # A keyword name outside ASCII travels as an escape, so the code is ASCII
 greek <- list(1)
 names(greek) <- "\u03f5_t"
-as_julia(do.call(component, c("Process", greek)), ascii = TRUE)
+as_julia(do.call(julia_spec, c("Process", greek)), ascii = TRUE)
 }

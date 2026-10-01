@@ -6,7 +6,7 @@
   `Imports`/`Remotes`: installing from the old repository still works
   through GitHub's redirect, but installs a package named `juliabridge`,
   so `library(juliaready)` then reports that no such package exists.
-* Added `component()`, `julia()`, `as_julia()`, `assert_role()` and the
+* Added `julia_spec()`, `julia()`, `as_julia()`, `assert_role()` and the
   `as_julia_value()` extension point, which describe a Julia constructor call
   in R and render it to Julia source. Moved here from composableIDModelR,
   where the same code builds composable epidemiological models, with the roles

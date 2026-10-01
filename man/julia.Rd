@@ -9,21 +9,21 @@ julia(code, role = NULL)
 \arguments{
 \item{code}{Character string of Julia code.}
 
-\item{role}{Optional role (see \code{\link[=component]{component()}}). Without one the expression
-is accepted wherever a component is expected.}
+\item{role}{Optional role (see \code{\link[=julia_spec]{julia_spec()}}). Without one the expression
+is accepted wherever a spec is expected.}
 }
 \value{
 An object of class \code{julia_code}, which is also a
-\code{julia_component} and holds the code in \verb{$code}. It has no \verb{$fn},
+\code{julia_spec} and holds the code in \verb{$code}. It has no \verb{$fn},
 \verb{$args} or \verb{$kwargs}, so a package walking a call branches on
 \code{inherits(x, "julia_code")} first.
 }
 \description{
-Marks a string as Julia source to be inserted verbatim when a component is
+Marks a string as Julia source to be inserted verbatim when a spec is
 rendered, for arguments that cannot be expressed in R, such as functions or
 objects from other Julia packages.
 }
 \examples{
 # A Julia function, which has no R equivalent to render
-component("Sampler", transform = julia("identity"))
+julia_spec("Sampler", transform = julia("identity"))
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia_spec.R
 \name{assert_role}
 \alias{assert_role}
-\title{Check that an argument is a component of an accepted role}
+\title{Check that an argument is a spec of an accepted role}
 \usage{
 assert_role(
   x,
@@ -36,7 +36,7 @@ constructor. A \code{\link[=julia]{julia()}} expression with no role is accepted
 since the caller has said what it is by writing the code.
 }
 \examples{
-prior <- component("Normal", 0, 1, role = "prior")
+prior <- julia_spec("Normal", 0, 1, role = "prior")
 assert_role(prior, "prior")
 try(assert_role(prior, "model"))
 }
