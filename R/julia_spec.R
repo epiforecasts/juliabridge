@@ -92,7 +92,7 @@ julia_spec <- function(.fn, ..., .role = NULL) {
   )
 }
 
-#' Embed Julia code in a model
+#' Embed Julia code in a spec
 #'
 #' Marks a string as Julia source to be inserted verbatim when a spec is
 #' rendered, for arguments that cannot be expressed in R, such as functions or

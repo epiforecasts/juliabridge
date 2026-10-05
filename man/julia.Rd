@@ -2,7 +2,7 @@
 % Please edit documentation in R/julia_spec.R
 \name{julia}
 \alias{julia}
-\title{Embed Julia code in a model}
+\title{Embed Julia code in a spec}
 \usage{
 julia(code, .role = NULL)
 }
