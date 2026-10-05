@@ -164,7 +164,7 @@ as_julia <- function(x, ascii = FALSE) {
 #' @param ascii Logical. See [as_julia()].
 #' @return A character string of Julia code.
 #' @noRd
-.render <- function(x, ascii = TRUE) {
+.render <- function(x, ascii = FALSE) {
   if (inherits(x, "julia_code")) {
     return(x$code)
   }
