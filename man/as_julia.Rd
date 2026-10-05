@@ -10,9 +10,10 @@ as_julia(x, ascii = FALSE)
 \item{x}{A spec from \code{\link[=julia_spec]{julia_spec()}} or \code{\link[=julia]{julia()}}.}
 
 \item{ascii}{Logical. If \code{TRUE}, keyword names with non-ASCII characters
-are written with Unicode escapes, as string literals always are. Code
-supplied through \code{\link[=julia]{julia()}} is inserted verbatim either way. The default
-gives the more readable form that can be pasted into Julia.}
+are written with Unicode escapes, as string literals always are. The
+constructor name is inserted verbatim, as code supplied through \code{\link[=julia]{julia()}}
+is, since Julia has no escape for an identifier in call position. The
+default gives the more readable form that can be pasted into Julia.}
 }
 \value{
 A character string of Julia code that constructs the spec.
@@ -23,7 +24,7 @@ Render a spec as Julia code
 \examples{
 as_julia(julia_spec("Solver", 10L, tol = 1e-8))
 
-# A keyword name outside ASCII travels as an escape, so the code is ASCII
+# A keyword name outside ASCII travels as an escape
 greek <- list(1)
 names(greek) <- "\u03f5_t"
 as_julia(do.call(julia_spec, c("Process", greek)), ascii = TRUE)
