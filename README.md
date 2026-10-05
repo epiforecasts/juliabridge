@@ -85,6 +85,9 @@ my_function <- function(x) {
 - `julia_handle(handle, session, state_env)` holds a Julia object from R by an integer handle, paired with a token for the Julia session that created it. Both sides compare the token before acting on a handle. A handle from an old session then fails that check. The help page lists the three definitions the Julia side needs.
 - `julia_release_pending(state_env, release)` releases the Julia objects of handles R has garbage-collected. Because finalisers can run partway through another Julia call, they only queue a release. Call this immediately before a Julia call of your own.
 - `julia_handle_owned(x, state_env)` reports whether a handle's Julia object still belongs to this session. It returns `FALSE` for a handle loaded from a saved R object. It also returns `FALSE` for one created before `julia_ready()` last set Julia up.
+- `julia_spec(.fn, ...)` records a Julia constructor call as an R object, rendered to Julia source only when it runs, so a call can be built, printed and checked without starting Julia. Unnamed arguments become positional and named ones keyword arguments, R types map across (`2L` stays an integer, `2` becomes `2.0`), and a `NULL` keyword argument is dropped so the Julia default applies.
+- `julia(code)` inserts Julia source verbatim, for what R cannot express such as a function. `as_julia(x)` returns the rendered code; `ascii = TRUE` escapes keyword names outside ASCII so they survive transfer on any platform.
+- `assert_role(x, roles)` checks that a spec is what a slot expects, in whatever vocabulary the calling package uses, so a composition mistake is reported in R with the argument named rather than arriving from inside a Julia constructor.
 
 ## Out of scope
 
