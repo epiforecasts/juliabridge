@@ -21,12 +21,15 @@
 #' named list and an empty value are all refused, since Julia would read them
 #' as something the R value did not say.
 #'
-#' @param .fn Character string. Name of the Julia constructor. It is spelled
-#'   with a dot so that a Julia keyword named `f` or `fn` still reaches `...`
-#'   rather than being taken for this argument.
+#' @param .fn Character string. Name of the Julia constructor, which may be
+#'   qualified by its module and may hold a parameter list, as in
+#'   `"Vector{Float64}"`. It is spelled with a dot so that a Julia keyword
+#'   named `f` or `fn` still reaches `...` rather than being taken for this
+#'   argument.
 #' @param ... Arguments to the constructor. Unnamed arguments are positional
-#'   and named arguments become keyword arguments. Keyword names may contain
-#'   non-ASCII characters.
+#'   and named arguments become keyword arguments. A name is checked only for
+#'   the characters that would take it out of the call, so which names Julia
+#'   accepts is left to Julia; they may hold non-ASCII characters.
 #' @param .role Optional character string naming what the spec is, in
 #'   whatever vocabulary the calling package uses (for example `"prior"` or
 #'   `"model"`). It becomes a class, so [assert_role()] can check that
@@ -68,16 +71,16 @@ julia_spec <- function(.fn, ..., .role = NULL) {
       call. = FALSE
     )
   }
-  # Julia identifiers may hold letters from any script, as its own models do
-  # with Greek ones, so letters are matched rather than ASCII.
-  keyword_pattern <- "^[\\p{L}_][\\p{L}\\p{N}_!]*\\z"
+  # A keyword name holds no parameter list, so a comma and whitespace are
+  # refused outright.
   bad <- arg_names[named][
-    !grepl(keyword_pattern, arg_names[named], perl = TRUE)
+    grepl(.breaks_call, arg_names[named]) |
+      grepl("^[[:digit:]]|[,[:space:]]", arg_names[named])
   ]
   if (length(bad) > 0) {
     stop(
-      "Keyword names must be Julia identifiers: ",
-      toString(bad),
+      "Keyword names cannot hold a character that would take them out of ",
+      "the call: ", toString(bad),
       call. = FALSE
     )
   }
@@ -121,8 +124,7 @@ julia_spec <- function(.fn, ..., .role = NULL) {
 #' julia_spec("Sampler", transform = julia("identity"))
 #' @export
 julia <- function(code, .role = NULL) {
-  if (!is.character(code) || length(code) != 1 || is.na(code) ||
-      !nzchar(code)) {
+  if (!.is_string(code)) {
     stop("`code` must be a single non-empty string.", call. = FALSE)
   }
   if (!is.null(.role)) .assert_role_name(.role)
@@ -605,6 +607,68 @@ assert_role <- function(
   invisible(TRUE)
 }
 
+#' Characters that would take a name out of its place in a call
+#'
+#' A name reaches Julia verbatim, so what matters is that it cannot start a
+#' new expression, close the call early, or open a literal or a comment.
+#' Which characters count as part of an identifier is Julia's own business,
+#' through `Base.isidentifier`, and a parametric name such as
+#' `Vector{Float64}` is not an identifier at all, so a name Julia cannot read
+#' is left for Julia to report.
+#'
+#' These are refused wherever they appear, including inside a parameter list,
+#' since `{}` holds expressions that Julia evaluates. A comma and a space are
+#' refused outside a parameter list only, where they would separate arguments.
+#' @noRd
+.breaks_call <- "[()\"'`#$=;\\\\]"
+
+#' A name with its parameter lists removed
+#'
+#' Nested lists are stripped from the inside out, so an unbalanced brace is
+#' left in place and the name is judged with it.
+#'
+#' @param x The name.
+#' @return The name outside any `{}`.
+#' @noRd
+.outside_braces <- function(x) {
+  repeat {
+    stripped <- sub("\\{[^{}]*\\}", "", x)
+    if (identical(stripped, x)) return(x)
+    x <- stripped
+  }
+}
+
+#' Whether a value is one usable string
+#'
+#' @param x The value to judge.
+#' @return `TRUE` for a single non-empty, non-missing string.
+#' @noRd
+.is_string <- function(x) {
+  is.character(x) && length(x) == 1 && !is.na(x) && nzchar(x)
+}
+
+#' Whether a string can stand as the head of a Julia call
+#'
+#' @param x The name to judge.
+#' @return `TRUE` when the name may be rendered.
+#' @noRd
+.is_julia_name <- function(x) {
+  if (!.is_string(x)) {
+    return(FALSE)
+  }
+  # A leading digit or dot, or a trailing dot, which Julia reads as a
+  # broadcast call.
+  if (grepl("^[[:digit:].]|[.]\\z", x, perl = TRUE)) {
+    return(FALSE)
+  }
+  if (grepl(.breaks_call, x)) {
+    return(FALSE)
+  }
+  # A comma and whitespace belong inside a parameter list, as in
+  # `Dict{String, Int}`, and nowhere else.
+  !grepl("[,[:space:]]", .outside_braces(x))
+}
+
 #' Check a name that is rendered into Julia source
 #'
 #' @param x The name to check.
@@ -612,18 +676,12 @@ assert_role <- function(
 #' @return Invisibly `TRUE`.
 #' @noRd
 .assert_name <- function(x, arg_name) {
-  # Letters from any script, as for keyword names, and a dot only between two
-  # identifiers, so that a module-qualified name passes while `F.`, which
-  # Julia reads as a broadcast call, does not.
-  identifier <- "[\\p{L}_][\\p{L}\\p{N}_!]*"
-  # Anchored with `\\z`, since PCRE's `$` also matches before a final
-  # newline, and a name ending in one renders two Julia expressions.
-  pattern <- paste0("^", identifier, "(\\.", identifier, ")*\\z")
-  if (!is.character(x) || length(x) != 1 || is.na(x) ||
-      !grepl(pattern, x, perl = TRUE)) {
+  if (!.is_julia_name(x)) {
     stop(
-      "`", arg_name, "` must be a single name that Julia can read, ",
-      "such as \"Normal\" or \"MyModule.build\".",
+      "`", arg_name, "` must be the name of a Julia constructor, such as ",
+      "\"Normal\", \"MyModule.build\" or \"Vector{Float64}\", and cannot ",
+      "hold a character that would take it out of the call: a parenthesis, ",
+      "quote, comma, semicolon, `#`, `=`, `$`, backslash or line break.",
       call. = FALSE
     )
   }

@@ -7,13 +7,16 @@
 julia_spec(.fn, ..., .role = NULL)
 }
 \arguments{
-\item{.fn}{Character string. Name of the Julia constructor. It is spelled
-with a dot so that a Julia keyword named \code{f} or \code{fn} still reaches \code{...}
-rather than being taken for this argument.}
+\item{.fn}{Character string. Name of the Julia constructor, which may be
+qualified by its module and may hold a parameter list, as in
+\code{"Vector{Float64}"}. It is spelled with a dot so that a Julia keyword
+named \code{f} or \code{fn} still reaches \code{...} rather than being taken for this
+argument.}
 
 \item{...}{Arguments to the constructor. Unnamed arguments are positional
-and named arguments become keyword arguments. Keyword names may contain
-non-ASCII characters.}
+and named arguments become keyword arguments. A name is checked only for
+the characters that would take it out of the call, so which names Julia
+accepts is left to Julia; they may hold non-ASCII characters.}
 
 \item{.role}{Optional character string naming what the spec is, in
 whatever vocabulary the calling package uses (for example \code{"prior"} or

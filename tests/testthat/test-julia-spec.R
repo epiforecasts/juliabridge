@@ -54,22 +54,43 @@ test_that("specs render positional and keyword arguments", {
 })
 
 test_that("arguments Julia could not read are refused", {
-  expect_error(julia_spec("bad name"), "a single name")
+  expect_error(julia_spec("bad name"), "name of a Julia constructor")
   # A dot qualifies a name by its module; it does not start or end one, where
   # Julia would read a broadcast call
   expect_identical(as_julia(julia_spec("MyModule.build")), "MyModule.build()")
-  expect_error(julia_spec("F."), "a single name")
+  expect_error(julia_spec("F."), "name of a Julia constructor")
   # A trailing newline would render two Julia expressions, and a role ending
   # in one would be a class nothing could assert
-  expect_error(julia_spec("F\n"), "a single name")
-  expect_error(julia_spec("F", `a\n` = 1), "Julia identifiers")
+  expect_error(julia_spec("F\n"), "name of a Julia constructor")
+  expect_error(julia_spec("F", `a\n` = 1), "out of")
   expect_error(julia_spec("F", .role = "prior\n"), "such as .prior.")
-  expect_error(julia_spec(".F"), "a single name")
-  # A constructor name may use letters from any script, as a keyword may
+  expect_error(julia_spec(".F"), "name of a Julia constructor")
+  # A constructor name may use letters from any script, as a keyword may, and
+  # Julia decides what counts as one: `\u2207loss` and `x\u2032` are names
+  # `Base.isidentifier()` accepts
   expect_identical(as_julia(julia_spec("\u0394", 1)), "\u0394(1.0)")
-  expect_error(julia_spec(1), "a single name")
+  expect_identical(as_julia(julia_spec("\u2207loss")), "\u2207loss()")
+  prime <- list(1L)
+  names(prime) <- "x\u2032"
+  expect_identical(
+    as_julia(do.call(julia_spec, c("F", prime))), "F(; x\u2032 = 1)"
+  )
+  # A parameter list comes through, with the comma and space it needs
+  expect_identical(
+    as_julia(julia_spec("Vector{Float64}", 0, 0)), "Vector{Float64}(0.0, 0.0)"
+  )
+  expect_identical(
+    as_julia(julia_spec("Array{Vector{Float64}, 2}")),
+    "Array{Vector{Float64}, 2}()"
+  )
+  # A `{}` holds expressions Julia evaluates, so what would break out of the
+  # call is refused there too
+  expect_error(julia_spec("F{(); run_me()}"), "name of a Julia constructor")
+  expect_error(julia_spec("F(1); run_me()"), "name of a Julia constructor")
+  expect_error(julia_spec("F,G"), "name of a Julia constructor")
+  expect_error(julia_spec(1), "name of a Julia constructor")
   expect_error(julia_spec("F", 1, NULL, 3), "positional argument")
-  expect_error(julia_spec("F", `a b` = 1), "Julia identifiers")
+  expect_error(julia_spec("F", `a b` = 1), "out of")
   repeated <- list(1, 2)
   names(repeated) <- c("a", "a")
   expect_error(do.call(julia_spec, c("F", repeated)), "must be distinct")
