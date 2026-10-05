@@ -106,6 +106,13 @@ test_that("arguments Julia could not read are refused", {
   repeated <- list(1, 2)
   names(repeated) <- c("a", "a")
   expect_error(do.call(julia_spec, c("F", repeated)), "must be distinct")
+  # A `NULL` among them is still a repeat: dropping either value discards
+  # something the caller wrote, so neither reading is safe to pick
+  overridden <- list(1e-8, NULL)
+  names(overridden) <- c("tol", "tol")
+  expect_error(
+    do.call(julia_spec, c("Solver", overridden)), "no reading of the call"
+  )
   expect_error(julia_spec("F", .role = "not a role"), "such as .prior.")
   expect_error(julia_spec("F", .role = "code"), "juliabridge uses")
   expect_error(julia_spec("F", .role = "spec"), "juliabridge uses")

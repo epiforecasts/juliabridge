@@ -89,8 +89,9 @@ julia_spec <- function(.fn, ..., .role = NULL) {
   repeated <- unique(arg_names[named][duplicated(arg_names[named])])
   if (length(repeated) > 0) {
     stop(
-      "Keyword names must be distinct, since Julia rejects a keyword ",
-      "argument given twice in one call: ", toString(repeated),
+      "Keyword names must be distinct. Julia rejects a keyword argument ",
+      "given twice in one call, and where one of them is `NULL` there is no ",
+      "reading of the call that keeps both: ", toString(repeated),
       call. = FALSE
     )
   }
