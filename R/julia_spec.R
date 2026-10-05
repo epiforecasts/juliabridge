@@ -70,8 +70,9 @@ julia_spec <- function(.fn, ..., .role = NULL) {
   }
   # Julia identifiers may hold letters from any script, as its own models do
   # with Greek ones, so letters are matched rather than ASCII.
+  keyword_pattern <- "^[\\p{L}_][\\p{L}\\p{N}_!]*\\z"
   bad <- arg_names[named][
-    !grepl("^[\\p{L}_][\\p{L}\\p{N}_!]*$", arg_names[named], perl = TRUE)
+    !grepl(keyword_pattern, arg_names[named], perl = TRUE)
   ]
   if (length(bad) > 0) {
     stop(
@@ -585,7 +586,7 @@ assert_role <- function(
 #' @noRd
 .assert_role_name <- function(role) {
   if (!is.character(role) || length(role) != 1 || is.na(role) ||
-      !grepl("^[\\p{L}_][\\p{L}\\p{N}_.]*$", role, perl = TRUE)) {
+      !grepl("^[\\p{L}_][\\p{L}\\p{N}_.]*\\z", role, perl = TRUE)) {
     stop(
       "`.role` must be a single name, such as \"prior\" or \"model\", ",
       "using letters, digits, `.` and `_`.",
@@ -614,7 +615,9 @@ assert_role <- function(
   # identifiers, so that a module-qualified name passes while `F.`, which
   # Julia reads as a broadcast call, does not.
   identifier <- "[\\p{L}_][\\p{L}\\p{N}_!]*"
-  pattern <- paste0("^", identifier, "(\\.", identifier, ")*$")
+  # Anchored with `\\z`, since PCRE's `$` also matches before a final
+  # newline, and a name ending in one renders two Julia expressions.
+  pattern <- paste0("^", identifier, "(\\.", identifier, ")*\\z")
   if (!is.character(x) || length(x) != 1 || is.na(x) ||
       !grepl(pattern, x, perl = TRUE)) {
     stop(

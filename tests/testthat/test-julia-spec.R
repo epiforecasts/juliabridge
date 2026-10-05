@@ -59,6 +59,11 @@ test_that("arguments Julia could not read are refused", {
   # Julia would read a broadcast call
   expect_identical(as_julia(julia_spec("MyModule.build")), "MyModule.build()")
   expect_error(julia_spec("F."), "a single name")
+  # A trailing newline would render two Julia expressions, and a role ending
+  # in one would be a class nothing could assert
+  expect_error(julia_spec("F\n"), "a single name")
+  expect_error(julia_spec("F", `a\n` = 1), "Julia identifiers")
+  expect_error(julia_spec("F", .role = "prior\n"), "such as .prior.")
   expect_error(julia_spec(".F"), "a single name")
   # A constructor name may use letters from any script, as a keyword may
   expect_identical(as_julia(julia_spec("\u0394", 1)), "\u0394(1.0)")
