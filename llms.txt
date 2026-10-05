@@ -151,6 +151,20 @@ my_function <- function(x) {
   before
   [`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md)
   last set Julia up.
+- `julia_spec(.fn, ...)` records a Julia constructor call as an R
+  object, rendered to Julia source only when it runs, so a call can be
+  built, printed and checked without starting Julia. Unnamed arguments
+  become positional and named ones keyword arguments, R types map across
+  (`2L` stays an integer, `2` becomes `2.0`), and a `NULL` keyword
+  argument is dropped so the Julia default applies.
+- `julia(code)` inserts Julia source verbatim, for what R cannot express
+  such as a function. `as_julia(x)` returns the rendered code;
+  `ascii = TRUE` escapes keyword names outside ASCII so they survive
+  transfer on any platform.
+- `assert_role(x, roles)` checks that a spec is what a slot expects, in
+  whatever vocabulary the calling package uses, so a composition mistake
+  is reported in R with the argument named rather than arriving from
+  inside a Julia constructor.
 
 ## Out of scope
 
@@ -176,6 +190,15 @@ MIT
 
 ## All functions
 
+- [`as_julia()`](https://epiforecasts.io/juliabridge/reference/as_julia.md)
+  : Render a spec as Julia code
+
+- [`as_julia_value()`](https://epiforecasts.io/juliabridge/reference/as_julia_value.md)
+  : Render a value of a class this package does not know
+
+- [`assert_role()`](https://epiforecasts.io/juliabridge/reference/assert_role.md)
+  : Check that an argument is a spec of an accepted role
+
 - [`assign_julia()`](https://epiforecasts.io/juliabridge/reference/assign_julia.md)
   :
 
@@ -199,6 +222,9 @@ MIT
 - [`import_julia()`](https://epiforecasts.io/juliabridge/reference/import_julia.md)
   : Import a Julia module
 
+- [`julia()`](https://epiforecasts.io/juliabridge/reference/julia.md) :
+  Embed Julia code in a spec
+
 - [`julia_alive()`](https://epiforecasts.io/juliabridge/reference/julia_alive.md)
   : Is the Julia session still usable?
 
@@ -221,6 +247,9 @@ MIT
 
 - [`julia_release_pending()`](https://epiforecasts.io/juliabridge/reference/julia_release_pending.md)
   : Release the Julia objects of collected handles
+
+- [`julia_spec()`](https://epiforecasts.io/juliabridge/reference/julia_spec.md)
+  : Describe a Julia constructor call
 
 - [`juliaup_julia()`](https://epiforecasts.io/juliabridge/reference/juliaup_julia.md)
   : Install a Julia version with juliaup and return its binary

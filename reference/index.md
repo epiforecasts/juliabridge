@@ -2,6 +2,15 @@
 
 ## All functions
 
+- [`as_julia()`](https://epiforecasts.io/juliabridge/reference/as_julia.md)
+  : Render a spec as Julia code
+
+- [`as_julia_value()`](https://epiforecasts.io/juliabridge/reference/as_julia_value.md)
+  : Render a value of a class this package does not know
+
+- [`assert_role()`](https://epiforecasts.io/juliabridge/reference/assert_role.md)
+  : Check that an argument is a spec of an accepted role
+
 - [`assign_julia()`](https://epiforecasts.io/juliabridge/reference/assign_julia.md)
   :
 
@@ -25,6 +34,9 @@
 - [`import_julia()`](https://epiforecasts.io/juliabridge/reference/import_julia.md)
   : Import a Julia module
 
+- [`julia()`](https://epiforecasts.io/juliabridge/reference/julia.md) :
+  Embed Julia code in a spec
+
 - [`julia_alive()`](https://epiforecasts.io/juliabridge/reference/julia_alive.md)
   : Is the Julia session still usable?
 
@@ -47,6 +59,9 @@
 
 - [`julia_release_pending()`](https://epiforecasts.io/juliabridge/reference/julia_release_pending.md)
   : Release the Julia objects of collected handles
+
+- [`julia_spec()`](https://epiforecasts.io/juliabridge/reference/julia_spec.md)
+  : Describe a Julia constructor call
 
 - [`juliaup_julia()`](https://epiforecasts.io/juliabridge/reference/juliaup_julia.md)
   : Install a Julia version with juliaup and return its binary

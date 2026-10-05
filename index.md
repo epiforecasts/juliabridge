@@ -151,6 +151,20 @@ my_function <- function(x) {
   before
   [`julia_ready()`](https://epiforecasts.io/juliabridge/reference/julia_ready.md)
   last set Julia up.
+- `julia_spec(.fn, ...)` records a Julia constructor call as an R
+  object, rendered to Julia source only when it runs, so a call can be
+  built, printed and checked without starting Julia. Unnamed arguments
+  become positional and named ones keyword arguments, R types map across
+  (`2L` stays an integer, `2` becomes `2.0`), and a `NULL` keyword
+  argument is dropped so the Julia default applies.
+- `julia(code)` inserts Julia source verbatim, for what R cannot express
+  such as a function. `as_julia(x)` returns the rendered code;
+  `ascii = TRUE` escapes keyword names outside ASCII so they survive
+  transfer on any platform.
+- `assert_role(x, roles)` checks that a spec is what a slot expects, in
+  whatever vocabulary the calling package uses, so a composition mistake
+  is reported in R with the argument named rather than arriving from
+  inside a Julia constructor.
 
 ## Out of scope
 

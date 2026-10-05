@@ -5,6 +5,9 @@
 <url><loc>https://epiforecasts.io/juliabridge/authors.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/index.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/news/index.html</loc></url>
+<url><loc>https://epiforecasts.io/juliabridge/reference/as_julia.html</loc></url>
+<url><loc>https://epiforecasts.io/juliabridge/reference/as_julia_value.html</loc></url>
+<url><loc>https://epiforecasts.io/juliabridge/reference/assert_role.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/assign_julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/call_julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/command_julia.html</loc></url>
@@ -13,6 +16,7 @@
 <url><loc>https://epiforecasts.io/juliabridge/reference/get_julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/import_julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/index.html</loc></url>
+<url><loc>https://epiforecasts.io/juliabridge/reference/julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/julia_alive.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/julia_bin.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/julia_handle.html</loc></url>
@@ -20,6 +24,7 @@
 <url><loc>https://epiforecasts.io/juliabridge/reference/julia_load_bridge.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/julia_ready.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/julia_release_pending.html</loc></url>
+<url><loc>https://epiforecasts.io/juliabridge/reference/julia_spec.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/juliaup_julia.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/manifest_julia_version.html</loc></url>
 <url><loc>https://epiforecasts.io/juliabridge/reference/wrappers.html</loc></url>

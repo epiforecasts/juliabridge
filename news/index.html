@@ -35,6 +35,7 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="juliabridge-010">juliabridge 0.1.0<a class="anchor" aria-label="anchor" href="#juliabridge-010"></a></h2>
 <ul><li>Renamed from juliaready, ahead of the package also taking on the building of Julia calls from R objects. Consumers need to update both their <code>juliaready::</code> call sites and the <code>juliaready</code> entry in <code>Imports</code>/<code>Remotes</code>: installing from the old repository still works through GitHub’s redirect, but installs a package named <code>juliabridge</code>, so <code><a href="https://github.com/sbfnk/juliaready" class="external-link">library(juliaready)</a></code> then reports that no such package exists.</li>
+<li>Added <code><a href="../reference/julia_spec.html">julia_spec()</a></code>, <code><a href="../reference/julia.html">julia()</a></code>, <code><a href="../reference/as_julia.html">as_julia()</a></code>, <code><a href="../reference/assert_role.html">assert_role()</a></code> and the <code><a href="../reference/as_julia_value.html">as_julia_value()</a></code> extension point, which describe a Julia constructor call in R and render it to Julia source. Moved here from composableIDModelR, where the same code builds composable epidemiological models, with the roles now supplied by the calling package rather than fixed.</li>
 <li>Initial version.</li>
 </ul></div>
   </main></div>
