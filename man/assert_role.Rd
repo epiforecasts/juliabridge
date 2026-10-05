@@ -36,7 +36,7 @@ constructor. A \code{\link[=julia]{julia()}} expression with no role is accepted
 since the caller has said what it is by writing the code.
 }
 \examples{
-prior <- julia_spec("Normal", 0, 1, .role = "prior")
-assert_role(prior, "prior")
-try(assert_role(prior, "model"))
+transform <- julia_spec("LogTransform", .role = "transform")
+assert_role(transform, "transform")
+try(assert_role(transform, "model"))
 }

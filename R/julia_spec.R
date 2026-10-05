@@ -39,10 +39,18 @@
 #'   in `$kwargs`. A package may read those to inspect or rewrite a call.
 #'
 #' @examples
-#' julia_spec("Normal", 0, 1, .role = "prior")
+#' # Any Julia constructor, by name. R types map across: `10L` is a Julia
+#' # integer, `1e-8` a float and `"BFGS"` a Julia string.
+#' julia_spec("Solver", 10L, tol = 1e-8, method = "BFGS")
 #'
-#' # Keyword arguments, and a spec nested inside another
-#' julia_spec("Truncated", julia_spec("Normal", 0, 1), lower = 0)
+#' # A name may be qualified by its module, and a spec may nest in another
+#' julia_spec("MyModule.Problem", julia_spec("Solver", 10L), verbose = TRUE)
+#'
+#' # A matrix keeps its shape, reaching Julia as a Matrix
+#' as_julia(julia_spec("Weights", matrix(1:4, nrow = 2)))
+#'
+#' # A role lets the calling package check how specs are composed
+#' julia_spec("Normal", 0, 1, .role = "prior")
 #' @export
 julia_spec <- function(.fn, ..., .role = NULL) {
   .assert_name(.fn, ".fn")
@@ -129,7 +137,7 @@ julia <- function(code, .role = NULL) {
 #' @return A character string of Julia code that constructs the spec.
 #'
 #' @examples
-#' as_julia(julia_spec("Gamma", 6.5, 0.62))
+#' as_julia(julia_spec("Solver", 10L, tol = 1e-8))
 #'
 #' # A keyword name outside ASCII travels as an escape, so the code is ASCII
 #' greek <- list(1)
@@ -254,9 +262,9 @@ as_julia <- function(x, ascii = FALSE) {
 #' @return A spec or an R value that renders on its own.
 #' @export
 #' @examples
-#' # A package with its own distribution class renders it like this:
-#' as_julia_value.my_normal <- function(x, ...) {
-#'   julia_spec("Normal", x$mean, x$sd)
+#' # A package with a value class of its own renders it like this:
+#' as_julia_value.my_interval <- function(x, ...) {
+#'   julia_spec("Interval", x$lower, x$upper)
 #' }
 as_julia_value <- function(x, ...) {
   UseMethod("as_julia_value")
@@ -491,9 +499,9 @@ as_julia_value.default <- function(x, ...) {
 #' @return Invisibly `TRUE`.
 #' @export
 #' @examples
-#' prior <- julia_spec("Normal", 0, 1, .role = "prior")
-#' assert_role(prior, "prior")
-#' try(assert_role(prior, "model"))
+#' transform <- julia_spec("LogTransform", .role = "transform")
+#' assert_role(transform, "transform")
+#' try(assert_role(transform, "model"))
 assert_role <- function(
   x, roles, null_ok = FALSE, arg_name = deparse(substitute(x)), labels = NULL
 ) {

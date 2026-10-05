@@ -47,8 +47,16 @@ named list and an empty value are all refused, since Julia would read them
 as something the R value did not say.
 }
 \examples{
-julia_spec("Normal", 0, 1, .role = "prior")
+# Any Julia constructor, by name. R types map across: `10L` is a Julia
+# integer, `1e-8` a float and `"BFGS"` a Julia string.
+julia_spec("Solver", 10L, tol = 1e-8, method = "BFGS")
 
-# Keyword arguments, and a spec nested inside another
-julia_spec("Truncated", julia_spec("Normal", 0, 1), lower = 0)
+# A name may be qualified by its module, and a spec may nest in another
+julia_spec("MyModule.Problem", julia_spec("Solver", 10L), verbose = TRUE)
+
+# A matrix keeps its shape, reaching Julia as a Matrix
+as_julia(julia_spec("Weights", matrix(1:4, nrow = 2)))
+
+# A role lets the calling package check how specs are composed
+julia_spec("Normal", 0, 1, .role = "prior")
 }

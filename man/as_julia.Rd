@@ -21,7 +21,7 @@ A character string of Julia code that constructs the spec.
 Render a spec as Julia code
 }
 \examples{
-as_julia(julia_spec("Gamma", 6.5, 0.62))
+as_julia(julia_spec("Solver", 10L, tol = 1e-8))
 
 # A keyword name outside ASCII travels as an escape, so the code is ASCII
 greek <- list(1)

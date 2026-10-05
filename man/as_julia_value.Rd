@@ -21,8 +21,8 @@ spec from \code{\link[=julia_spec]{julia_spec()}} or a plain R value, and it ren
 the value appears.
 }
 \examples{
-# A package with its own distribution class renders it like this:
-as_julia_value.my_normal <- function(x, ...) {
-  julia_spec("Normal", x$mean, x$sd)
+# A package with a value class of its own renders it like this:
+as_julia_value.my_interval <- function(x, ...) {
+  julia_spec("Interval", x$lower, x$upper)
 }
 }
