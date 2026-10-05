@@ -456,7 +456,7 @@ as_julia_value.default <- function(x, ...) {
 
 #' The width available to one argument of several
 #'
-#' [.join_lines()] appends a separator to every argument but the last, so an
+#' `.join_lines()` appends a separator to every argument but the last, so an
 #' argument that gains one has a character less to play with than the line
 #' width allows.
 #'
