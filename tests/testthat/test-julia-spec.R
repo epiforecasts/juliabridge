@@ -88,6 +88,18 @@ test_that("arguments Julia could not read are refused", {
   expect_error(julia_spec("F{(); run_me()}"), "name of a Julia constructor")
   expect_error(julia_spec("F(1); run_me()"), "name of a Julia constructor")
   expect_error(julia_spec("F,G"), "name of a Julia constructor")
+  # One case per character that would take the name out of the call, since
+  # that set is the whole barrier and a slip in it would be invisible
+  breaks_call <- c(
+    "F(", "F)", "F\"q", "F'q", "F`q", "F#q", "F$q", "F=q", "F;q", "F\\q"
+  )
+  for (name in breaks_call) {
+    expect_error(julia_spec(name), "name of a Julia constructor", info = name)
+    expect_error(
+      do.call(julia_spec, c("G", stats::setNames(list(1), name))),
+      "out of the call", info = name
+    )
+  }
   expect_error(julia_spec(1), "name of a Julia constructor")
   expect_error(julia_spec("F", 1, NULL, 3), "positional argument")
   expect_error(julia_spec("F", `a b` = 1), "out of")
