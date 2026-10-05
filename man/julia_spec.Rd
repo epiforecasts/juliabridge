@@ -16,9 +16,12 @@ named \code{f} or \code{fn} still reaches \code{...} rather than being taken for
 argument.}
 
 \item{...}{Arguments to the constructor. Unnamed arguments are positional
-and named arguments become keyword arguments. A name is checked only for
-the characters that would take it out of the call, so which names Julia
-accepts is left to Julia; they may hold non-ASCII characters.}
+and named arguments become keyword arguments. A keyword name is refused
+if it begins with a digit, holds a space or comma, holds a character
+that would take it out of the call, or repeats another; beyond that,
+which names Julia accepts is left to Julia, and a name may hold
+non-ASCII characters. Every keyword name is checked, including one whose
+value is \code{NULL} and so is dropped.}
 
 \item{.role}{Optional character string naming what the spec is, in
 whatever vocabulary the calling package uses (for example \code{"prior"} or
