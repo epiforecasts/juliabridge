@@ -9,7 +9,9 @@ julia_spec(.fn, ..., .role = NULL)
 \arguments{
 \item{.fn}{Character string. Name of the Julia constructor, which may be
 qualified by its module and may hold a parameter list, as in
-\code{"Vector{Float64}"}. It is spelled with a dot so that a Julia keyword
+\code{"Vector{Float64}"}. A parameter list may not hold a parenthesis or a
+quote, so a name such as \code{"NamedTuple{(:a, :b), Tuple{Int, Int}}"} has to
+be written with \code{\link[=julia]{julia()}}. It is spelled with a dot so that a Julia keyword
 named \code{f} or \code{fn} still reaches \code{...} rather than being taken for this
 argument.}
 

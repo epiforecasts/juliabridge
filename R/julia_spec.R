@@ -23,7 +23,9 @@
 #'
 #' @param .fn Character string. Name of the Julia constructor, which may be
 #'   qualified by its module and may hold a parameter list, as in
-#'   `"Vector{Float64}"`. It is spelled with a dot so that a Julia keyword
+#'   `"Vector{Float64}"`. A parameter list may not hold a parenthesis or a
+#'   quote, so a name such as `"NamedTuple{(:a, :b), Tuple{Int, Int}}"` has to
+#'   be written with [julia()]. It is spelled with a dot so that a Julia keyword
 #'   named `f` or `fn` still reaches `...` rather than being taken for this
 #'   argument.
 #' @param ... Arguments to the constructor. Unnamed arguments are positional
@@ -79,8 +81,8 @@ julia_spec <- function(.fn, ..., .role = NULL) {
   ]
   if (length(bad) > 0) {
     stop(
-      "Keyword names cannot hold a character that would take them out of ",
-      "the call: ", toString(bad),
+      "Keyword names cannot begin with a digit, or hold a space, a comma, ",
+      "or a character that would take them out of the call: ", toString(bad),
       call. = FALSE
     )
   }
@@ -679,9 +681,10 @@ assert_role <- function(
   if (!.is_julia_name(x)) {
     stop(
       "`", arg_name, "` must be the name of a Julia constructor, such as ",
-      "\"Normal\", \"MyModule.build\" or \"Vector{Float64}\", and cannot ",
-      "hold a character that would take it out of the call: a parenthesis, ",
-      "quote, comma, semicolon, `#`, `=`, `$`, backslash or line break.",
+      "\"Normal\", \"MyModule.build\" or \"Vector{Float64}\": one string, ",
+      "with no leading digit or dot, no trailing dot, no space or comma ",
+      "outside a parameter list, and none of the characters that would take ",
+      "it out of the call.",
       call. = FALSE
     )
   }
