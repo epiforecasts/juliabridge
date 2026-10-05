@@ -579,8 +579,13 @@ assert_role <- function(
 #' @return Invisibly `TRUE`.
 #' @noRd
 .assert_name <- function(x, arg_name) {
+  # Letters from any script, as for keyword names, and a dot only between two
+  # identifiers, so that a module-qualified name passes while `F.`, which
+  # Julia reads as a broadcast call, does not.
+  identifier <- "[\\p{L}_][\\p{L}\\p{N}_!]*"
+  pattern <- paste0("^", identifier, "(\\.", identifier, ")*$")
   if (!is.character(x) || length(x) != 1 || is.na(x) ||
-      !grepl("^[A-Za-z_][A-Za-z0-9_.!]*$", x)) {
+      !grepl(pattern, x, perl = TRUE)) {
     stop(
       "`", arg_name, "` must be a single name that Julia can read, ",
       "such as \"Normal\" or \"MyModule.build\".",

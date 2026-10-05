@@ -55,6 +55,13 @@ test_that("specs render positional and keyword arguments", {
 
 test_that("arguments Julia could not read are refused", {
   expect_error(julia_spec("bad name"), "a single name")
+  # A dot qualifies a name by its module; it does not start or end one, where
+  # Julia would read a broadcast call
+  expect_identical(as_julia(julia_spec("MyModule.build")), "MyModule.build()")
+  expect_error(julia_spec("F."), "a single name")
+  expect_error(julia_spec(".F"), "a single name")
+  # A constructor name may use letters from any script, as a keyword may
+  expect_identical(as_julia(julia_spec("\u0394", 1)), "\u0394(1.0)")
   expect_error(julia_spec(1), "a single name")
   expect_error(julia_spec("F", 1, NULL, 3), "positional argument")
   expect_error(julia_spec("F", `a b` = 1), "Julia identifiers")
