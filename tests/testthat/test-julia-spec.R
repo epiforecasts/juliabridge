@@ -77,6 +77,18 @@ test_that("arguments Julia could not read are refused", {
   expect_error(julia(""), "non-empty")
 })
 
+test_that("a separator does not push an argument past the width", {
+  # An argument lands exactly on the width here, and then gains a `,` from
+  # the join, so the budget has to leave room for it
+  inner <- julia_spec("G", strrep("y", 62))
+  lines <- format(julia_spec("F", aaaa = inner, b = 1))
+  expect_true(all(nchar(lines) <= 78))
+  expect_identical(
+    as_julia(julia_spec("F", aaaa = inner, b = 1)),
+    paste0("F(; aaaa = G(\"", strrep("y", 62), "\"), b = 1.0)")
+  )
+})
+
 test_that("a Julia keyword named role or fn reaches the constructor", {
   spec <- julia_spec("F", role = "sink", fn = "exp", .role = "prior")
   expect_identical(as_julia(spec), "F(; role = \"sink\", fn = \"exp\")")

@@ -444,8 +444,29 @@ as_julia_value.default <- function(x, ...) {
 #' @return Character vector of lines.
 #' @noRd
 .format_vector <- function(x, width, indent, pad) {
-  elements <- lapply(x, .format_code, width = width, indent = indent + 1L)
+  elements <- lapply(seq_along(x), function(i) {
+    .format_code(
+      x[[i]], width = .arg_width(width, i, length(x), ""),
+      indent = indent + 1L
+    )
+  })
   c(paste0(pad, "["), .join_lines(elements), paste0(pad, "]"))
+}
+
+#' The width available to one argument of several
+#'
+#' [.join_lines()] appends a separator to every argument but the last, so an
+#' argument that gains one has a character less to play with than the line
+#' width allows.
+#'
+#' @inheritParams .format_code
+#' @param i Position of this argument.
+#' @param n Number of arguments.
+#' @param last_sep Separator after the final argument.
+#' @return The width this argument may occupy.
+#' @noRd
+.arg_width <- function(width, i, n, last_sep) {
+  if (i < n || nzchar(last_sep)) width - 1L else width
 }
 
 #' Format a spec call over several lines
@@ -456,19 +477,29 @@ as_julia_value.default <- function(x, ...) {
 #' @noRd
 .format_call <- function(x, width, indent, pad) {
   inner_pad <- strrep("    ", indent + 1L)
-  positional <- lapply(
-    x$args, .format_code, width = width, indent = indent + 1L
-  )
-  kwargs <- Map(function(name, value) {
-    formatted <- .format_code(value, width - nchar(name) - 3L, indent + 1L)
-    formatted[1] <- paste0(inner_pad, name, " = ", trimws(formatted[1], "left"))
+  n_args <- length(x$args)
+  n_kwargs <- length(x$kwargs)
+  args_sep <- if (n_kwargs > 0) ";" else ""
+  positional <- lapply(seq_len(n_args), function(i) {
+    .format_code(
+      x$args[[i]], width = .arg_width(width, i, n_args, args_sep),
+      indent = indent + 1L
+    )
+  })
+  kw_names <- names(x$kwargs)
+  kwargs <- lapply(seq_len(n_kwargs), function(i) {
+    budget <- .arg_width(width, i, n_kwargs, "") - nchar(kw_names[i]) - 3L
+    formatted <- .format_code(x$kwargs[[i]], budget, indent + 1L)
+    formatted[1] <- paste0(
+      inner_pad, kw_names[i], " = ", trimws(formatted[1], "left")
+    )
     formatted
-  }, names(x$kwargs), x$kwargs)
-  opening <- if (length(positional) == 0 && length(kwargs) > 0) "(;" else "("
+  })
+  opening <- if (n_args == 0 && n_kwargs > 0) "(;" else "("
   c(
     paste0(pad, x$fn, opening),
-    .join_lines(positional, if (length(kwargs) > 0) ";" else ""),
-    .join_lines(unname(kwargs)),
+    .join_lines(positional, args_sep),
+    .join_lines(kwargs),
     paste0(pad, ")")
   )
 }
