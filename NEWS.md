@@ -11,4 +11,7 @@
   in R and render it to Julia source. Moved here from composableIDModelR,
   where the same code builds composable epidemiological models, with the roles
   now supplied by the calling package rather than fixed.
+* A keyword argument of a spec can be read back by name with `$`, as in
+  `julia_spec("Solver", tol = 1e-8)$tol`. It used to read as `NULL`, since
+  the spec holds its keyword arguments in `$kwargs` (#17).
 * Initial version.

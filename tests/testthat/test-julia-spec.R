@@ -316,3 +316,25 @@ test_that("names that Julia would drop are refused rather than dropped", {
   expect_error(.render(list()), "empty")
   expect_error(.render(numeric()), "empty")
 })
+
+test_that("keyword arguments can be read back by name", {
+  spec <- julia_spec("Solver", 10L, tol = 1e-8, method = "BFGS")
+  expect_identical(spec$tol, 1e-8)
+  expect_identical(spec$method, "BFGS")
+  expect_null(spec$maxiter)
+  # No partial matching: `t` is not `tol`.
+  expect_null(spec$t)
+  # A dropped NULL keyword argument reads as NULL, as the Julia default it
+  # stands for has no value in R.
+  expect_null(julia_spec("Solver", tol = NULL)$tol)
+})
+
+test_that("the fields of a spec come before a keyword of the same name", {
+  spec <- julia_spec("Plot", fn = "sin", args = 2L)
+  expect_identical(spec$fn, "Plot")
+  expect_identical(spec$kwargs$fn, "sin")
+  expect_identical(spec$args, list())
+  expect_identical(as_julia(spec), 'Plot(; fn = "sin", args = 2)')
+  expect_identical(julia("x + 1")$code, "x + 1")
+  expect_null(julia("x + 1")$tol)
+})

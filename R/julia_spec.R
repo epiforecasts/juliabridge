@@ -45,6 +45,10 @@
 #' @return An object of class `julia_spec`, holding the constructor name
 #'   in `$fn`, the positional arguments in `$args` and the keyword arguments
 #'   in `$kwargs`. A package may read those to inspect or rewrite a call.
+#'   Any other name read with `$` gives the keyword argument of that name, or
+#'   `NULL` if there is none, so `julia_spec("Solver", tol = 1e-8)$tol` is
+#'   `1e-8`. A keyword argument named `fn`, `args` or `kwargs` is reached
+#'   through `$kwargs`.
 #'
 #' @examples
 #' # Any Julia constructor, by name. R types map across: `10L` is a Julia
@@ -56,6 +60,9 @@
 #'
 #' # A matrix keeps its shape, reaching Julia as a Matrix
 #' as_julia(julia_spec("Weights", matrix(1:4, nrow = 2)))
+#'
+#' # A keyword argument can be read back by name
+#' julia_spec("Solver", 10L, tol = 1e-8)$tol
 #'
 #' # A role lets the calling package check how specs are composed
 #' julia_spec("Normal", 0, 1, .role = "prior")
@@ -693,6 +700,16 @@ assert_role <- function(
     )
   }
   invisible(TRUE)
+}
+
+#' @export
+`$.julia_spec` <- function(x, name) {
+  # The fields come first, since this package and the packages built on it
+  # read them to render and rewrite a call.
+  if (name %in% names(unclass(x))) {
+    return(.subset2(x, name))
+  }
+  .subset2(x, "kwargs")[[name]]
 }
 
 #' @export

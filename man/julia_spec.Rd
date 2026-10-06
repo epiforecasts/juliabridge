@@ -34,6 +34,10 @@ as \code{.fn}, so that a Julia keyword named \code{role} reaches \code{...}.}
 An object of class \code{julia_spec}, holding the constructor name
 in \verb{$fn}, the positional arguments in \verb{$args} and the keyword arguments
 in \verb{$kwargs}. A package may read those to inspect or rewrite a call.
+Any other name read with \code{$} gives the keyword argument of that name, or
+\code{NULL} if there is none, so \code{julia_spec("Solver", tol = 1e-8)$tol} is
+\code{1e-8}. A keyword argument named \code{fn}, \code{args} or \code{kwargs} is reached
+through \verb{$kwargs}.
 }
 \description{
 Records a call to a Julia constructor as an R object, rendered to Julia
@@ -64,6 +68,9 @@ julia_spec("MyModule.Problem", julia_spec("Solver", 10L), verbose = TRUE)
 
 # A matrix keeps its shape, reaching Julia as a Matrix
 as_julia(julia_spec("Weights", matrix(1:4, nrow = 2)))
+
+# A keyword argument can be read back by name
+julia_spec("Solver", 10L, tol = 1e-8)$tol
 
 # A role lets the calling package check how specs are composed
 julia_spec("Normal", 0, 1, .role = "prior")
