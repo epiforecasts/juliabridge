@@ -338,3 +338,25 @@ test_that("the fields of a spec come before a keyword of the same name", {
   expect_identical(julia("x + 1")$code, "x + 1")
   expect_null(julia("x + 1")$tol)
 })
+
+test_that("a keyword argument set with $ is the one rendered", {
+  spec <- julia_spec("Solver", tol = 1e-8)
+  spec$tol <- 1e-6
+  spec$method <- "BFGS"
+  expect_identical(spec$tol, 1e-6)
+  expect_identical(as_julia(spec), 'Solver(; tol = 1e-06, method = "BFGS")')
+  expect_s3_class(spec, "julia_spec")
+  # NULL drops the keyword, so the Julia default applies
+  spec$tol <- NULL
+  expect_identical(as_julia(spec), 'Solver(; method = "BFGS")')
+  # The fields are still set directly
+  spec$fn <- "Optimiser"
+  expect_identical(as_julia(spec), 'Optimiser(; method = "BFGS")')
+  expect_error({
+    spec$`a b` <- 1
+  }, "Keyword names cannot")
+  code <- julia("x + 1")
+  expect_error({
+    code$tol <- 1
+  }, "no keyword arguments")
+})

@@ -36,8 +36,9 @@ in \verb{$fn}, the positional arguments in \verb{$args} and the keyword argument
 in \verb{$kwargs}. A package may read those to inspect or rewrite a call.
 Any other name read with \code{$} gives the keyword argument of that name, or
 \code{NULL} if there is none, so \code{julia_spec("Solver", tol = 1e-8)$tol} is
-\code{1e-8}. A keyword argument named \code{fn}, \code{args} or \code{kwargs} is reached
-through \verb{$kwargs}.
+\code{1e-8}. Assigning with \code{$} sets a keyword argument in the same way, and
+assigning \code{NULL} drops it. A keyword argument named \code{fn}, \code{args} or
+\code{kwargs} is reached through \verb{$kwargs}.
 }
 \description{
 Records a call to a Julia constructor as an R object, rendered to Julia

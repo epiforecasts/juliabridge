@@ -47,8 +47,9 @@
 #'   in `$kwargs`. A package may read those to inspect or rewrite a call.
 #'   Any other name read with `$` gives the keyword argument of that name, or
 #'   `NULL` if there is none, so `julia_spec("Solver", tol = 1e-8)$tol` is
-#'   `1e-8`. A keyword argument named `fn`, `args` or `kwargs` is reached
-#'   through `$kwargs`.
+#'   `1e-8`. Assigning with `$` sets a keyword argument in the same way, and
+#'   assigning `NULL` drops it. A keyword argument named `fn`, `args` or
+#'   `kwargs` is reached through `$kwargs`.
 #'
 #' @examples
 #' # Any Julia constructor, by name. R types map across: `10L` is a Julia
@@ -83,19 +84,7 @@ julia_spec <- function(.fn, ..., .role = NULL) {
       call. = FALSE
     )
   }
-  # A keyword name holds no parameter list, so a comma and whitespace are
-  # refused outright.
-  bad <- arg_names[named][
-    grepl(.breaks_call, arg_names[named]) |
-      grepl("^[[:digit:]]|[,[:space:]]", arg_names[named])
-  ]
-  if (length(bad) > 0) {
-    stop(
-      "Keyword names cannot begin with a digit, or hold a space, a comma, ",
-      "or a character that would take them out of the call: ", toString(bad),
-      call. = FALSE
-    )
-  }
+  .assert_keyword_names(arg_names[named])
   repeated <- unique(arg_names[named][duplicated(arg_names[named])])
   if (length(repeated) > 0) {
     stop(
@@ -592,6 +581,30 @@ assert_role <- function(
   paste(article, role, "spec")
 }
 
+#' Check keyword names
+#'
+#' Which names Julia accepts is left to Julia; these are refused because they
+#' would break the call or be read as something else.
+#'
+#' @param kw_names Character vector of keyword names.
+#' @return Invisibly `TRUE`.
+#' @noRd
+.assert_keyword_names <- function(kw_names) {
+  # A keyword name holds no parameter list, so a comma and whitespace are
+  # refused outright.
+  bad <- kw_names[
+    grepl(.breaks_call, kw_names) | grepl("^[[:digit:]]|[,[:space:]]", kw_names)
+  ]
+  if (length(bad) > 0) {
+    stop(
+      "Keyword names cannot begin with a digit, or hold a space, a comma, ",
+      "or a character that would take them out of the call: ", toString(bad),
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
 #' Check a role name
 #'
 #' A role becomes a class, so it needs to be a single name, but it is never
@@ -710,6 +723,29 @@ assert_role <- function(
     return(.subset2(x, name))
   }
   .subset2(x, "kwargs")[[name]]
+}
+
+#' @export
+`$<-.julia_spec` <- function(x, name, value) {
+  if (name %in% names(unclass(x))) {
+    return(NextMethod())
+  }
+  if (inherits(x, "julia_code")) {
+    stop(
+      "Julia code from `julia()` has no keyword arguments to set.",
+      call. = FALSE
+    )
+  }
+  .assert_keyword_names(name)
+  kwargs <- .subset2(x, "kwargs")
+  # Assigning NULL drops the keyword, so the Julia default applies, as it
+  # does for a NULL keyword given to `julia_spec()`.
+  kwargs[[name]] <- value
+  spec_class <- class(x)
+  x <- unclass(x)
+  x$kwargs <- kwargs
+  class(x) <- spec_class
+  x
 }
 
 #' @export
