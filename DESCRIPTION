@@ -1,6 +1,6 @@
 Package: juliabridge
 Title: Bridge R Packages to Julia
-Version: 0.1.0
+Version: 0.1.0.9000
 Authors@R:
     person("Sebastian", "Funk", , "sebastian.funk@lshtm.ac.uk",
            role = c("aut", "cre"),
