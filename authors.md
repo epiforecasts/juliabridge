@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/epiforecasts/juliabridge/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/epiforecasts/juliabridge/blob/v0.1.0/DESCRIPTION)
 
 Funk S (2026). *juliabridge: Bridge R Packages to Julia*. R package
 version 0.1.0, <https://github.com/epiforecasts/juliabridge>.
