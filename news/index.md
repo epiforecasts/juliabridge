@@ -9,7 +9,7 @@
   their `juliaready::` call sites and the `juliaready` entry in
   `Imports`/`Remotes`: installing from the old repository still works
   through GitHub’s redirect, but installs a package named `juliabridge`,
-  so [`library(juliaready)`](https://github.com/sbfnk/juliaready) then
+  so [`library(juliaready)`](https://rdrr.io/r/base/library.html) then
   reports that no such package exists.
 - Added
   [`julia_spec()`](https://epiforecasts.io/juliabridge/reference/julia_spec.md),
