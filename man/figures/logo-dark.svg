@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1386" viewBox="0 0 1200 1386">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A2430"/>
+      <stop offset="1" stop-color="#131A21"/>
+    </linearGradient>
+  </defs>
+  <path d="M600.0,0.0L1200.0,346.4L1200.0,1039.2L600.0,1385.6L0.0,1039.2L0.0,346.4Z" fill="url(#bg)"/>
+  <path d="M300.0 835.0 q 45 -18 90 0 t 90 0 t 90 0" fill="none" stroke="#3A4D60" stroke-width="12" stroke-linecap="round"/>
+  <path d="M640.0 835.0 q 45 -18 90 0 t 90 0 t 90 0" fill="none" stroke="#3A4D60" stroke-width="12" stroke-linecap="round"/>
+  <path d="M470.0 885.0 q 45 -18 90 0 t 90 0 t 90 0" fill="none" stroke="#3A4D60" stroke-width="12" stroke-linecap="round"/>
+  <line x1="320.0" y1="612.0" x2="320.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="390.0" y1="528.0" x2="390.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="460.0" y1="468.0" x2="460.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="530.0" y1="432.0" x2="530.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="600.0" y1="420.0" x2="600.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="670.0" y1="432.0" x2="670.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="740.0" y1="468.0" x2="740.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="810.0" y1="528.0" x2="810.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="880.0" y1="612.0" x2="880.0" y2="720.0" stroke="#C9D4DF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M250.0 720.0 L257.0 708.1 L264.0 696.5 L271.0 685.1 L278.0 673.9 L285.0 663.0 L292.0 652.3 L299.0 641.9 L306.0 631.7 L313.0 621.7 L320.0 612.0 L327.0 602.5 L334.0 593.3 L341.0 584.3 L348.0 575.5 L355.0 567.0 L362.0 558.7 L369.0 550.7 L376.0 542.9 L383.0 535.3 L390.0 528.0 L397.0 520.9 L404.0 514.1 L411.0 507.5 L418.0 501.1 L425.0 495.0 L432.0 489.1 L439.0 483.5 L446.0 478.1 L453.0 472.9 L460.0 468.0 L467.0 463.3 L474.0 458.9 L481.0 454.7 L488.0 450.7 L495.0 447.0 L502.0 443.5 L509.0 440.3 L516.0 437.3 L523.0 434.5 L530.0 432.0 L537.0 429.7 L544.0 427.7 L551.0 425.9 L558.0 424.3 L565.0 423.0 L572.0 421.9 L579.0 421.1 L586.0 420.5 L593.0 420.1 L600.0 420.0 L607.0 420.1 L614.0 420.5 L621.0 421.1 L628.0 421.9 L635.0 423.0 L642.0 424.3 L649.0 425.9 L656.0 427.7 L663.0 429.7 L670.0 432.0 L677.0 434.5 L684.0 437.3 L691.0 440.3 L698.0 443.5 L705.0 447.0 L712.0 450.7 L719.0 454.7 L726.0 458.9 L733.0 463.3 L740.0 468.0 L747.0 472.9 L754.0 478.1 L761.0 483.5 L768.0 489.1 L775.0 495.0 L782.0 501.1 L789.0 507.5 L796.0 514.1 L803.0 520.9 L810.0 528.0 L817.0 535.3 L824.0 542.9 L831.0 550.7 L838.0 558.7 L845.0 567.0 L852.0 575.5 L859.0 584.3 L866.0 593.3 L873.0 602.5 L880.0 612.0 L887.0 621.7 L894.0 631.7 L901.0 641.9 L908.0 652.3 L915.0 663.0 L922.0 673.9 L929.0 685.1 L936.0 696.5 L943.0 708.1 L950.0 720.0" fill="none" stroke="#C9D4DF" stroke-width="22" stroke-linecap="round"/>
+  <line x1="175.0" y1="720.0" x2="983.0" y2="720.0" stroke="#C9D4DF" stroke-width="22" stroke-linecap="round"/>
+  <rect x="218.0" y="714.0" width="64" height="145.0" rx="8" fill="#C9D4DF"/>
+  <rect x="918.0" y="714.0" width="64" height="145.0" rx="8" fill="#C9D4DF"/>
+  <circle cx="370.0" cy="676.0" r="24" fill="#5C9BE6"/>
+  <circle cx="485.0" cy="676.0" r="24" fill="#5C9BE6"/>
+  <circle cx="600.0" cy="676.0" r="24" fill="#E5625A"/>
+  <circle cx="715.0" cy="676.0" r="24" fill="#5DB84B"/>
+  <circle cx="830.0" cy="676.0" r="24" fill="#B57FD0"/>
+  <circle cx="175.0" cy="720.0" r="58" fill="#5C9BE6"/>
+  <circle cx="1020.0" cy="688.0" r="32" fill="#E5625A"/>
+  <circle cx="983.0" cy="752.0" r="32" fill="#5DB84B"/>
+  <circle cx="1057.0" cy="752.0" r="32" fill="#B57FD0"/>
+  <text x="600" y="1086" text-anchor="middle" font-family="Fira Sans, DejaVu Sans, sans-serif" font-weight="600" font-size="140" fill="#F2F5F8">julia<tspan fill="#6CA8EC">bridge</tspan></text>
+  <path d="M600.0,10.4L1191.0,351.6L1191.0,1034.0L600.0,1375.2L9.0,1034.0L9.0,351.6Z" fill="none" stroke="#6CA8EC" stroke-width="26"/>
+</svg>

@@ -1,4 +1,4 @@
-# juliabridge
+# juliabridge <a href="https://epiforecasts.io/juliabridge/"><img src="man/figures/logo.png" align="right" height="139" alt="juliabridge website" /></a>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/epiforecasts/juliabridge/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/epiforecasts/juliabridge/actions/workflows/R-CMD-check.yaml)
